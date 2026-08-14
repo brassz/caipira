@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { WebSocket } = require('ws');
-const { createClient } = require('@supabase/supabase-js');
+const { createPix, listPayments, createPayout, verifyWebhook } = require('./cajupay');
 
 if (typeof globalThis.WebSocket === 'undefined') globalThis.WebSocket = WebSocket;
 
@@ -153,6 +153,89 @@ function mountApi(app) {
     res.json({ id: data });
   });
 
+  async function confirmPixPath(pathRef) {
+    const { error } = await db().rpc('api_confirm_deposit_by_path', { p_path: pathRef });
+    if (error) throw new Error(rpcErr(error));
+  }
+
+  app.post('/api/pix', async (req, res) => {
+    try {
+      const me = await userFromToken(tokenOf(req));
+      if (!me) return res.status(401).json({ error: 'Faça login.' });
+      const amount = Number(req.body && req.body.amount);
+      if (!amount || amount < 2) return res.status(400).json({ error: 'Valor mínimo R$ 2,00.' });
+      const doc = String((req.body && req.body.document) || '').replace(/\D/g, '');
+      if (doc.length !== 11 && doc.length !== 14) {
+        return res.status(400).json({ error: 'Informe um CPF válido.' });
+      }
+      const cents = Math.round(amount * 100);
+      const pay = await createPix({
+        amountCents: cents,
+        userId: me.id,
+        email: me.email,
+        name: me.username || req.body.name,
+        document: doc
+      });
+      const paymentId = pay.payment_id || pay.id;
+      const pathRef = 'cajupay:' + paymentId;
+      const { data, error } = await db().rpc('api_deposit', {
+        p_token: tokenOf(req), p_amount: amount, p_path: pathRef
+      });
+      if (error) return res.status(400).json({ error: rpcErr(error) });
+      res.json({
+        id: data,
+        paymentId,
+        status: pay.status || 'pending',
+        copyPaste: pay.pix_copy_paste || pay.pix_key || '',
+        qr: pay.pix_qr_code || ''
+      });
+    } catch (e) {
+      res.status(400).json({ error: e.message || 'Erro ao gerar PIX' });
+    }
+  });
+
+  app.get('/api/pix/status/:id', async (req, res) => {
+    try {
+      const me = await userFromToken(tokenOf(req));
+      if (!me) return res.status(401).json({ error: 'Faça login.' });
+      const hist = await db().rpc('api_my_deposits', { p_token: tokenOf(req) });
+      const row = asList(hist.data).find(x => String(x.id) === String(req.params.id));
+      if (!row) return res.status(404).json({ error: 'Depósito não encontrado' });
+      if (row.status === 'approved') return res.json({ status: 'approved', balance: me.balance });
+      const pathRef = row.receipt_path || '';
+      const pid = pathRef.replace(/^cajupay:/, '');
+      if (pid) {
+        const list = await listPayments().catch(() => []);
+        const items = Array.isArray(list) ? list : (list.data || list.payments || []);
+        const found = items.find(p => String(p.payment_id || p.id) === String(pid));
+        if (found && String(found.status || '').toLowerCase() === 'paid') {
+          await confirmPixPath(pathRef);
+          const fresh = await userFromToken(tokenOf(req));
+          return res.json({ status: 'approved', balance: fresh && fresh.balance });
+        }
+      }
+      res.json({ status: row.status || 'pending' });
+    } catch (e) {
+      res.status(400).json({ error: e.message || 'Erro' });
+    }
+  });
+
+  app.post('/webhooks/cajupay', async (req, res) => {
+    try {
+      const raw = req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
+      const event = verifyWebhook(raw, req.headers['x-cajupay-signature'], process.env.CAJUPAY_WEBHOOK_SECRET);
+      const type = event.type || req.headers['x-cajupay-event'] || '';
+      const obj = (event.data && event.data.object) || event.data || {};
+      const pid = obj.cajupay_payment_id || obj.payment_id || obj.id;
+      if (String(type).includes('pix.payment.paid') || String(obj.status).toLowerCase() === 'paid') {
+        if (pid) await confirmPixPath('cajupay:' + pid);
+      }
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(400).json({ error: e.message || 'Webhook inválido' });
+    }
+  });
+
   app.post('/api/withdraw', async (req, res) => {
     const { amount, pixKey } = req.body || {};
     const { data, error } = await db().rpc('api_withdraw', {
@@ -250,6 +333,20 @@ function mountApi(app) {
   });
 
   app.post('/api/admin/withdrawals/:id/pay', async (req, res) => {
+    if (!(await requireAdmin(req, res))) return;
+    const listed = await db().rpc('api_admin_withdrawals', { p_token: tokenOf(req) });
+    if (listed.error) return res.status(400).json({ error: rpcErr(listed.error) });
+    const w = asList(listed.data).find(x => String(x.id) === String(req.params.id));
+    if (!w) return res.status(404).json({ error: 'Saque não encontrado' });
+    try {
+      await createPayout({
+        amountCents: Math.round(Number(w.amount) * 100),
+        pixKey: w.pix_key,
+        ownerDocument: req.body && req.body.document
+      });
+    } catch (e) {
+      return res.status(400).json({ error: e.message || 'Falha no PIX de saque' });
+    }
     const { error } = await db().rpc('api_pay_withdrawal', { p_token: tokenOf(req), p_id: req.params.id });
     if (error) return res.status(400).json({ error: rpcErr(error) });
     res.json({ ok: true });

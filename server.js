@@ -18,7 +18,10 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 const PORT = process.env.PORT || 3000;
-app.use(express.json({ limit: '8mb' }));
+app.use(express.json({
+  limit: '8mb',
+  verify: (req, _res, buf) => { req.rawBody = buf; }
+}));
 mountApi(app);
 app.use(express.static(path.join(__dirname, 'public')));
 const TURN_MS = 18000;

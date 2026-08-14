@@ -125,7 +125,7 @@ async function loadAll(){
           <td>${esc(w.email)}</td><td>${brl(w.amount)}</td>
           <td>${esc(w.pix_key)}</td>
           <td>${esc(w.status)} ${ready?'':'· aguardar'}</td>
-          <td>${w.status==='pending'?`<button class="ok" onclick="act('/api/admin/withdrawals/${w.id}/pay')">Pago</button>
+          <td>${w.status==='pending'?`<button class="ok" onclick="payOut('${w.id}')">Pagar PIX</button>
             <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>`:''}</td>
         </tr>`;
       }).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';
@@ -161,6 +161,11 @@ async function adjust(id, sign){
 async function delUser(id, name){
   if(!confirm('Excluir o jogador '+name+'? Esta ação não tem volta.')) return;
   try { await api('/api/admin/users/'+id+'/delete',{}); await loadAll(); }
+  catch(e){ alert(e.message); }
+}
+async function payOut(id){
+  const document = prompt('CPF/CNPJ do dono da chave PIX (obrigatório para e-mail, telefone ou aleatória):') || '';
+  try { await api('/api/admin/withdrawals/'+id+'/pay', { document }); await loadAll(); }
   catch(e){ alert(e.message); }
 }
 async function act(path){

@@ -305,7 +305,6 @@ function openWallet(){
   $('wallet').onclick = e => { if(e.target.id==='wallet') $('wallet').classList.remove('show'); };
 }
 function walletView(mode){
-  const pix = APP_CONFIG.PIX_KEY, name = APP_CONFIG.PIX_NAME;
   if(mode==='home'){
     $('walletBox').innerHTML = `<h3>Carteira</h3><p>Saldo ${brl(profile.balance)}</p>
       <button class="ok" onclick="walletView('add')">Adicionar</button>
@@ -315,13 +314,12 @@ function walletView(mode){
     loadHist();
   }
   if(mode==='add'){
-    const wa = APP_CONFIG.WA_DISPLAY || '(16) 99295-4354';
     $('walletBox').innerHTML = `<h3>Adicionar saldo</h3>
-      <div class="pix"><b>Chave PIX (CNPJ):</b><br>${pix}<br><br><b>${name}</b></div>
-      <p class="muted">Pague via PIX e envie o comprovante no WhatsApp ${wa}. O saldo entra após conferência.</p>
-      <input id="depAmt" type="number" min="1" step="0.01" placeholder="Valor pago (R$) — opcional">
+      <p class="muted">PIX instantâneo. Mínimo R$ 2,00. O saldo entra automaticamente após o pagamento.</p>
+      <input id="depAmt" type="number" min="2" step="0.01" placeholder="Valor (R$)">
+      <input id="depCpf" placeholder="CPF" inputmode="numeric">
       <div class="err" id="werr"></div>
-      <button class="ok" onclick="openWhatsAppReceipt()" style="width:100%;background:#25D366;color:#fff;box-shadow:none">Enviar comprovante no WhatsApp</button>
+      <button class="ok" onclick="createPixCharge()">Gerar PIX</button>
       <button class="sec" onclick="walletView('home')">Voltar</button>`;
   }
   if(mode==='out'){
@@ -334,14 +332,41 @@ function walletView(mode){
       <button class="sec" onclick="walletView('home')">Voltar</button>`;
   }
 }
-function openWhatsAppReceipt(){
-  const phone = (APP_CONFIG.WA_PHONE || '5516992954354').replace(/\D/g,'');
-  const user = (profile && (profile.username || profile.email)) || '';
-  const amt = Number(($('depAmt') && $('depAmt').value) || 0);
-  let text = 'Olá! Segue o comprovante PIX do Poker da Galera.';
-  if(user) text += '\nUsuário: ' + user;
-  if(amt>0) text += '\nValor: ' + brl(amt);
-  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text), '_blank');
+let pixPoll = null;
+async function createPixCharge(){
+  const amount = Number($('depAmt').value);
+  const document = ($('depCpf').value || '').replace(/\D/g,'');
+  $('werr').textContent = '';
+  try {
+    const r = await api('/api/pix', { amount, document });
+    showPixPay(r);
+  } catch(e) { $('werr').textContent = e.message; }
+}
+function showPixPay(r){
+  if(pixPoll) clearInterval(pixPoll);
+  const qr = r.qr ? (String(r.qr).startsWith('data:') ? r.qr : 'data:image/png;base64,'+r.qr) : '';
+  $('walletBox').innerHTML = `<h3>Pague o PIX</h3>
+    ${qr?`<img alt="QR PIX" src="${qr}" style="width:220px;height:220px;display:block;margin:8px auto;background:#fff;border-radius:8px">`:''}
+    <p class="muted">Copie o código e pague no app do banco. Esta tela atualiza sozinha.</p>
+    <div class="pix" id="pixCopy">${r.copyPaste||''}</div>
+    <button class="ok" onclick="navigator.clipboard.writeText($('pixCopy').textContent)">Copiar código</button>
+    <div class="err" id="werr"></div>
+    <p class="muted" id="pixSt">Aguardando pagamento…</p>
+    <button class="sec" onclick="stopPixPoll();walletView('home')">Voltar</button>`;
+  pixPoll = setInterval(()=>checkPix(r.id), 4000);
+}
+function stopPixPoll(){ if(pixPoll){ clearInterval(pixPoll); pixPoll=null; } }
+async function checkPix(id){
+  try {
+    const s = await api('/api/pix/status/'+id);
+    if(s.status==='approved'){
+      stopPixPoll();
+      if(s.balance!=null) profile.balance = s.balance;
+      await refresh();
+      $('walletBox').innerHTML = `<h3>Pagamento confirmado</h3><p>Saldo ${brl(profile.balance)}</p>
+        <button class="ok" onclick="walletView('home')">Ok</button>`;
+    }
+  } catch(e) { const el=$('werr'); if(el) el.textContent=e.message; }
 }
 async function sendWithdraw(){
   try {
