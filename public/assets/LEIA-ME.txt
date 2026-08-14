@@ -1,6 +1,10 @@
-Coloque aqui os arquivos visuais do login:
+Coloque aqui os arquivos visuais:
 
-  logo.png          → logo (PNG ou JPG, fundo transparente de preferência)
-  login-bg.jpg      → fundo da tela de login (imagem vertical, celular)
+  logo.png          → logo (PNG, fundo transparente de preferência)
+  login-bg.png      → fundo da tela de login
+  table.png         → imagem da MESA ao vivo (PNG oval, fundo transparente)
 
-Você também pode enviar esses arquivos pelo painel Admin (Logo e fundo).
+Mesa ao vivo (table.png):
+  Tamanho sugerido: 1200 x 800 ou similar, horizontal.
+  Fundo transparente, só o felt + borda de madeira.
+  Se o arquivo não existir, o jogo usa a mesa verde desenhada em CSS.

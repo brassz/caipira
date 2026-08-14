@@ -23,6 +23,18 @@ button:disabled{opacity:.38;cursor:default}
 
 .stage{position:absolute;inset:0}
 .felt-wrap{position:absolute;inset:18px 22px calc(136px + env(safe-area-inset-bottom))}
+.table-art{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;
+  pointer-events:none;z-index:0;display:none;
+}
+.felt-wrap.has-art .table-art{display:block}
+.felt-wrap.has-art .rail{
+  position:absolute;left:var(--tbl-l,0);top:var(--tbl-t,0);width:var(--tbl-w,100%);height:var(--tbl-h,100%);
+  background:transparent;box-shadow:none;padding:0;border-radius:0;
+}
+.felt-wrap.has-art .felt{
+  background:transparent;box-shadow:none;overflow:visible;border-radius:0;
+}
 .rail{
   width:100%;height:100%;border-radius:50%;
   background:linear-gradient(180deg,#8a5a28,#5a3816 40%,#3d250e);
@@ -75,15 +87,16 @@ button:disabled{opacity:.38;cursor:default}
   border-radius:10px;font-size:10px;padding:1px 6px;font-weight:800;
 }
 .btnD{
-  position:absolute;left:-8px;top:18px;width:18px;height:18px;border-radius:50%;
-  background:#f0c33a;color:#1a1406;font-size:10px;font-weight:900;
-  display:flex;align-items:center;justify-content:center;
+  position:absolute;left:-16px;top:6px;transform:none;
+  font-size:16px;line-height:1;filter:drop-shadow(0 2px 2px #000a);
+  z-index:8;pointer-events:none;
 }
 .blind{
   position:absolute;right:-8px;top:18px;font-size:9px;background:#0009;border-radius:6px;padding:1px 4px;color:#cde
 }
-.s0{left:50%;top:88%}.s1{left:84%;top:72%}.s2{left:86%;top:32%}
-.s3{left:50%;top:12%}.s4{left:14%;top:32%}.s5{left:16%;top:72%}
+.s0{left:50%;top:84%}.s1{left:80%;top:68%}
+.s2{left:80%;top:32%}.s3{left:50%;top:16%}
+.s4{left:20%;top:32%}.s5{left:20%;top:68%}
 .card{
   width:42px;height:60px;background:#f7f3ea;color:#161616;border-radius:6px;
   padding:3px 4px;font-weight:800;display:flex;flex-direction:column;justify-content:space-between;
@@ -140,6 +153,7 @@ button:disabled{opacity:.38;cursor:default}
   .card{width:28px;height:40px;font-size:10px}
   .plate{min-width:72px;font-size:10px;z-index:6}
   .plate b{max-width:68px}
+  .btnD{font-size:15px;left:-14px;top:4px}
   .mini .card{width:11px;height:16px;margin-left:-4px}
 }
 </style>
@@ -154,7 +168,8 @@ button:disabled{opacity:.38;cursor:default}
   </div>
   <div class="stage">
     <button class="leave" id="leave" style="display:none">✕</button>
-    <div class="felt-wrap">
+    <div class="felt-wrap" id="feltWrap">
+      <img class="table-art" id="tableArt" alt="">
       <div class="rail"><div class="felt">
         <div class="pot" id="pot">0</div>
         <div class="board" id="board"></div>
@@ -256,7 +271,7 @@ function render(){
     const face=acting
       ? `<div class="clock green" data-clock="1"><div class="avatar">${initials(p.name)}</div><div class="clock-num">18</div></div>`
       : `<div class="avatar">${initials(p.name)}</div>`;
-    const d=state.dealerId===p.id?'<div class="btnD">D</div>':'';
+    const d=state.dealerId===p.id?'<div class="btnD">👑</div>':'';
     const b=state.sbId===p.id?'<div class="blind">SB</div>':state.bbId===p.id?'<div class="blind">BB</div>':'';
     const chip=p.streetBet?`<div class="betchip">${money(p.streetBet)}</div>`:'';
     const mini=(!mine && p.hand&&p.hand.length)? `<div class="mini">${p.hand.map(c=>cardHtml(c,!reveal||!c)).join('')}</div>`:'';
@@ -325,6 +340,20 @@ async function maybeBust(){
 function doRebuy(){ send('rebuy'); }
 function goAddSaldo(){ if(ws) ws.close(); location.href='/?add=1'; }
 function leaveTable(){ if(ws) ws.close(); location.href='/'; }
+function fitTableArt(){
+  const wrap=document.getElementById('feltWrap');
+  const img=document.getElementById('tableArt');
+  if(!wrap||!img||!img.naturalWidth||!wrap.classList.contains('has-art')) return;
+  const wr=wrap.clientWidth, hr=wrap.clientHeight;
+  const ir=img.naturalWidth/img.naturalHeight, br=wr/hr;
+  let w,h,l,t;
+  if(ir>br){ w=wr; h=wr/ir; l=0; t=(hr-h)/2; }
+  else { h=hr; w=hr*ir; t=0; l=(wr-w)/2; }
+  wrap.style.setProperty('--tbl-l', l+'px');
+  wrap.style.setProperty('--tbl-t', t+'px');
+  wrap.style.setProperty('--tbl-w', w+'px');
+  wrap.style.setProperty('--tbl-h', h+'px');
+}
 $('fold').onclick=()=>send('act',{action:'fold'});
 $('call').onclick=()=>send('act',{action:(state.toCall>0?'call':'check')});
 $('raise').onclick=()=>{ setRaise($('betAmt').value, true); send('act',{action:'raise',to:raiseTo}); };
@@ -336,6 +365,19 @@ $('allin').onclick=()=>setRaise(maxRaiseTo());
 $('leave').onclick=()=>{ if(ws) ws.close(); location.href='/'; };
 
 (async function boot(){
+  const art=document.getElementById('tableArt');
+  const wrap=document.getElementById('feltWrap');
+  if(art&&wrap){
+    art.onload=()=>{ wrap.classList.add('has-art'); fitTableArt(); };
+    art.onerror=()=>{
+      if(art.dataset.try==='png'){ art.dataset.try='jpg'; art.src='/assets/table.jpg'; return; }
+      if(art.dataset.try==='jpg'){ art.dataset.try='webp'; art.src='/assets/table.webp'; return; }
+      art.style.display='none';
+    };
+    art.dataset.try='png';
+    art.src='/assets/table.png';
+    window.addEventListener('resize', fitTableArt);
+  }
   const table=new URLSearchParams(location.search).get('table');
   const tok=localStorage.getItem('pdg_token');
   if(!tok || !table){ location.href='/'; return; }
