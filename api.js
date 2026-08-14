@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { WebSocket } = require('ws');
+const { createClient } = require('@supabase/supabase-js');
 const { createPix, listPayments, createPayout, verifyWebhook } = require('./cajupay');
 
 if (typeof globalThis.WebSocket === 'undefined') globalThis.WebSocket = WebSocket;
