@@ -1,8 +1,8 @@
 {
-    "name": "omaha5-multiplayer-v4",
+    "name": "poker-da-galera",
     "version": "4.0.0",
     "private": true,
-    "description": "Omaha 5 Multiplayer com créditos fictícios",
+    "description": "Poker da Galera",
     "main": "server.js",
     "scripts": {
       "start": "node server.js"
@@ -12,6 +12,7 @@
     },
     "dependencies": {
       "express": "^4.21.2",
-      "ws": "^8.18.0"
+      "ws": "^8.18.0",
+      "@supabase/supabase-js": "^2.49.1"
     }
   }

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: omaha5-multiplayer
+    name: poker-da-galera
     runtime: node
     plan: free
     buildCommand: npm install

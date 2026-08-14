@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Admin · Poker da Galera</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+h1{color:#f3d27a;font-size:20px;margin:0}
+h2{font-size:16px;margin:22px 0 8px;color:#f6e7b8}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#121a2c;border-radius:10px;overflow:hidden}
+th,td{padding:8px;border-bottom:1px solid #243049;text-align:left;vertical-align:top}
+th{background:#0d1422;color:#f3d27a}
+button{border:0;border-radius:8px;padding:7px 10px;font-weight:800;cursor:pointer;margin:2px}
+.ok{background:#1fa65a;color:#fff}.no{background:#c43333;color:#fff}.sec{background:#243049;color:#fff}
+.gold{background:linear-gradient(180deg,#f6d56a,#d4a42a);color:#1a1406}
+input{background:#1b2438;color:#fff;border:0;border-radius:8px;padding:6px;width:90px}
+a{color:#7eb6ff}
+.muted{color:#9db0c8}
+.pager{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.tbox{background:#121a2c;border:1px solid #2c3a58;border-radius:12px;padding:12px}
+.tbox.on{border-color:#c9a35a88}
+.tbox b{display:block;color:#f6e7b8;margin-bottom:4px}
+.err{color:#ff8b8b;min-height:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <h1>Poker da Galera · Admin</h1>
+    <a href="/"><button class="sec">Lobby</button></a>
+  </div>
+  <p class="muted" id="who"></p>
+  <p class="err" id="err"></p>
+  <h2>Mesas</h2>
+  <div class="cards" id="tables"></div>
+  <h2>Jogadores</h2>
+  <div id="users"></div>
+  <div class="pager" id="pager"></div>
+  <h2>Depósitos</h2>
+  <div id="deps"></div>
+  <h2>Saques</h2>
+  <div id="outs"></div>
+</div>
+<script>
+const token=localStorage.getItem('pdg_token')||'';
+const brl=n=>'R$ '+Number(n||0).toFixed(2).replace('.',',');
+const asArr=d=>!d?[]:Array.isArray(d)?d:[d];
+const PAGE=5;
+let userPage=0, allUsers=[];
+async function api(path, body, method){
+  const opt={ method: method||(body?'POST':'GET'), headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token } };
+  if(body) opt.body=JSON.stringify(body);
+  const r=await fetch(path,opt);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||'Erro');
+  return j;
+}
+function esc(s){ return String(s||'').replace(/[&<>"]/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+async function boot(){
+  const who=document.getElementById('who');
+  if(!token){ who.textContent='Faça login no lobby e abra o Admin de novo.'; return; }
+  try {
+    let me=await api('/api/me');
+    if(Array.isArray(me)) me=me[0];
+    if(!me || me.role!=='admin'){
+      who.textContent='Sem permissão de admin para '+(me&&me.email||'esta conta')+'. Rode supabase/make-admin.sql no SQL Editor.';
+      return;
+    }
+    who.textContent='Logado: '+me.email;
+    await loadAll();
+  } catch(e){
+    who.textContent='Erro: '+(e.message||e)+'. Rode supabase/make-admin.sql no SQL Editor e reinicie o servidor.';
+  }
+}
+const EMPTY_TABLES=[
+  {id:'iniciante',name:'Iniciante',players:0,max:6,seated:[],active:false},
+  {id:'mediana',name:'Mediana',players:0,max:6,seated:[],active:false},
+  {id:'dificil',name:'Difícil',players:0,max:6,seated:[],active:false},
+  {id:'semipro',name:'Semipro',players:0,max:6,seated:[],active:false},
+  {id:'profissional',name:'Profissional',players:0,max:6,seated:[],active:false}
+];
+function renderTables(tables){
+  const rows=asArr(tables);
+  document.getElementById('tables').innerHTML=(rows.length?rows:EMPTY_TABLES).map(t=>`
+    <div class="tbox ${t.active?'on':''}">
+      <b>${esc(t.name)}</b>
+      <div>${t.players}/${t.max} jogadores</div>
+      <div class="muted">${t.active?'Ativa':'Vazia'}</div>
+      <div class="muted">${(t.seated||[]).map(esc).join(', ')||'—'}</div>
+    </div>`).join('');
+}
+async function loadAll(){
+  const err=document.getElementById('err');
+  err.textContent='';
+  try {
+    renderTables(await api('/api/admin/tables'));
+  } catch(e){ renderTables(EMPTY_TABLES); }
+  try {
+    allUsers=asArr(await api('/api/admin/users'));
+    if(userPage*PAGE>=allUsers.length) userPage=0;
+    renderUsers();
+  } catch(e){
+    document.getElementById('users').innerHTML='<p class="err">'+esc(e.message)+'</p>';
+    document.getElementById('pager').innerHTML='';
+  }
+  try {
+    const deps=asArr(await api('/api/admin/deposits'));
+    document.getElementById('deps').innerHTML=deps.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>Status</th></tr>
+      ${deps.map(d=>`<tr>
+        <td>${new Date(d.created_at).toLocaleString()}</td>
+        <td>${esc(d.email)}</td><td>${brl(d.amount)}</td><td>${esc(d.status)}</td>
+      </tr>`).join('')}</table>`:'<p class="muted">Nenhum depósito registrado no app. Comprovantes vão pelo WhatsApp.</p>';
+  } catch(e){ document.getElementById('deps').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
+  try {
+    const outs=asArr(await api('/api/admin/withdrawals'));
+    document.getElementById('outs').innerHTML=outs.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>PIX</th><th>Status</th><th></th></tr>
+      ${outs.map(w=>{
+        const ready=new Date(w.available_at)<=new Date();
+        return `<tr>
+          <td>${new Date(w.created_at).toLocaleString()}</td>
+          <td>${esc(w.email)}</td><td>${brl(w.amount)}</td>
+          <td>${esc(w.pix_key)}</td>
+          <td>${esc(w.status)} ${ready?'':'· aguardar'}</td>
+          <td>${w.status==='pending'?`<button class="ok" onclick="act('/api/admin/withdrawals/${w.id}/pay')">Pago</button>
+            <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>`:''}</td>
+        </tr>`;
+      }).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';
+  } catch(e){ document.getElementById('outs').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
+}
+function renderUsers(){
+  const pages=Math.max(1, Math.ceil(allUsers.length/PAGE));
+  const slice=allUsers.slice(userPage*PAGE, userPage*PAGE+PAGE);
+  document.getElementById('users').innerHTML=slice.length?`<table>
+    <tr><th>Usuário</th><th>E-mail</th><th>Saldo</th><th>Papel</th><th>Ajustar</th><th></th></tr>
+    ${slice.map(u=>`<tr>
+      <td>${esc(u.username)}</td><td>${esc(u.email)}</td>
+      <td>${brl(u.balance)}</td><td>${esc(u.role)}</td>
+      <td>
+        <input id="a-${u.id}" type="number" min="0.01" step="0.01" placeholder="R$">
+        <button class="ok" onclick="adjust('${u.id}',1)">Adicionar</button>
+        <button class="gold" onclick="adjust('${u.id}',-1)">Remover</button>
+      </td>
+      <td><button class="no" onclick="delUser('${u.id}','${esc(u.username)}')">Excluir</button></td>
+    </tr>`).join('')}</table>`:'<p class="muted">Nenhum jogador. Rode make-admin.sql se esta mensagem persistir.</p>';
+  document.getElementById('pager').innerHTML=`
+    <span class="muted">${allUsers.length} jogadores · página ${userPage+1} de ${pages}</span>
+    <button class="sec" ${userPage<=0?'disabled':''} onclick="userPage--;renderUsers()">Anterior</button>
+    <button class="sec" ${userPage>=pages-1?'disabled':''} onclick="userPage++;renderUsers()">Próxima</button>`;
+}
+async function adjust(id, sign){
+  const raw=(document.getElementById('a-'+id).value||'').replace(',','.');
+  const v=Number(raw);
+  if(!v || v<=0){ alert('Informe o valor.'); return; }
+  try { await api('/api/admin/balance',{ userId:id, delta: sign*v }); await loadAll(); }
+  catch(e){ alert(e.message); }
+}
+async function delUser(id, name){
+  if(!confirm('Excluir o jogador '+name+'? Esta ação não tem volta.')) return;
+  try { await api('/api/admin/users/'+id+'/delete',{}); await loadAll(); }
+  catch(e){ alert(e.message); }
+}
+async function act(path){
+  try { await api(path,{}); await loadAll(); } catch(e){ alert(e.message); }
+}
+boot();
+setInterval(()=>{ if(allUsers.length||document.getElementById('tables').children.length) loadAll().catch(()=>{}); }, 8000);
+</script>
+</body>
+</html>

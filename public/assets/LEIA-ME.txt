@@ -1,0 +1,6 @@
+Coloque aqui os arquivos visuais do login:
+
+  logo.png          → logo (PNG ou JPG, fundo transparente de preferência)
+  login-bg.jpg      → fundo da tela de login (imagem vertical, celular)
+
+Você também pode enviar esses arquivos pelo painel Admin (Logo e fundo).

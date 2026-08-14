@@ -2,309 +2,366 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>Omaha 5</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Poker da Galera</title>
+<script src="/config.js"></script>
 <style>
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;font-family:Arial,Helvetica,sans-serif;background:#070b14;color:#fff;overflow:hidden}
-.app{height:100%;display:flex;flex-direction:column;max-width:980px;margin:auto}
-
-.topbar{display:flex;align-items:center;gap:10px;padding:8px 12px;background:linear-gradient(#141c2e,#0b101c);border-bottom:1px solid #2a3550;z-index:3}
-.brand{font-weight:800;letter-spacing:.5px;color:#ffd24a;font-size:15px}
-.meta{font-size:12px;color:#9db0c8;flex:1}
-.money{color:#ffd24a;font-weight:700}
-.status{font-size:12px;color:#8fd3b0}
-
-.lobby{padding:14px;background:#10182a}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-input,button{border:0;border-radius:10px;padding:10px 12px;font-size:14px}
-input{flex:1;min-width:110px;background:#1b2438;color:#fff;outline:none}
-button{background:#f0c33a;color:#1a1406;font-weight:800;cursor:pointer}
-button.secondary{background:#2d6adf;color:#fff}
-button.ok{background:#1fa65a;color:#fff}
-button.danger{background:#d23b3b;color:#fff}
-button.ghost{background:#243049;color:#dbe6f5}
-button:disabled{opacity:.38;cursor:default}
-
-.stage{flex:1;position:relative;min-height:0}
-.felt-wrap{position:absolute;inset:8px 8px 118px}
-.rail{
-  width:100%;height:100%;
-  border-radius:50%;
-  background:
-    radial-gradient(ellipse at 50% 18%, #d4a45a 0 8%, transparent 22%),
-    linear-gradient(180deg,#8a5a28,#5a3816 40%,#3d250e);
-  padding:18px;
-  box-shadow:0 18px 40px #000a, inset 0 2px 0 #e6c27a88;
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.wrap{max-width:430px;margin:auto;padding:12px 12px 24px}
+.auth-page{max-width:none;padding:0;min-height:100vh}
+.auth-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:24px 16px;background:#05070c center/cover no-repeat;
 }
-.felt{
-  width:100%;height:100%;
-  border-radius:50%;
-  position:relative;
-  background:
-    radial-gradient(ellipse at 50% 42%, #1f8a55 0%, #0f5c38 42%, #083d26 78%, #052818 100%);
-  box-shadow:inset 0 0 0 3px #c9a35a55, inset 0 0 70px #0008;
-  overflow:hidden;
+.logo{display:block;width:168px;height:168px;margin:0 auto 6px;object-fit:contain;filter:drop-shadow(0 8px 24px #000c)}
+.top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.brand-row{display:flex;align-items:center;gap:10px;flex:1;min-width:160px}
+.brand-logo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid #c9a35a88}
+.brand{font-weight:800;color:#f3d27a;font-size:15px;letter-spacing:.4px;line-height:1.15}
+.brand small{display:block;color:#8fa3bb;font-weight:600;font-size:11px;letter-spacing:.8px}
+.saldo{background:#0e1420;border:1px solid #c9a35a44;border-radius:12px;padding:8px 12px;font-size:13px}
+.saldo b{color:#f3d27a}
+button,input{border:0;border-radius:12px;padding:14px 12px;font-size:16px}
+button{font-weight:800;cursor:pointer;background:linear-gradient(180deg,#f6d56a,#d4a42a);color:#1a1406;min-height:48px;box-shadow:0 2px 0 #8a6a12}
+button.sec{background:#1a2436;color:#e8eef8;box-shadow:none;border:1px solid #2c3a58}
+button.ok{background:#1fa65a;color:#fff;box-shadow:none}
+button.danger{background:#c43333;color:#fff;box-shadow:none}
+input{background:#0f1726;color:#fff;width:100%;margin:8px 0;min-height:48px;border:1px solid #2c3a58}
+input:focus{outline:1px solid #c9a35a88}
+.grid{display:grid;grid-template-columns:1fr;gap:10px}
+.tcard{
+  display:grid;grid-template-columns:88px 1fr auto;gap:12px;align-items:center;
+  background:linear-gradient(180deg,#121a28,#0c121c);
+  border:1px solid #2a384f;border-radius:16px;padding:10px;
+  box-shadow:0 8px 20px #0006;
 }
-.felt-logo{
-  position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);
-  font-size:clamp(22px,5vw,42px);font-weight:900;letter-spacing:3px;
-  color:#ffffff12;text-shadow:0 2px 0 #0003;pointer-events:none;
+.tthumb{
+  width:88px;height:64px;border-radius:12px;overflow:hidden;
+  border:1px solid #c9a35a55;background:transparent;flex:none;
 }
-.pot{
-  position:absolute;left:50%;top:28%;transform:translate(-50%,-50%);
-  min-width:90px;text-align:center;background:#0007;border:1px solid #e7c56a66;
-  border-radius:16px;padding:4px 12px;font-size:13px;color:#ffe08a;z-index:2;
+.tthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.tcard h3{margin:0;color:#f6e7b8;font-size:16px;font-weight:800}
+.tmeta{color:#8fa3bb;font-size:12px;margin-top:2px}
+.tbuy{text-align:right;color:#7dffae;font-weight:800;font-size:15px;line-height:1.2}
+.tbuy span{display:block;color:#8fa3bb;font-size:10px;font-weight:600}
+.tcard button{min-height:40px;padding:8px 14px;font-size:13px;border-radius:10px}
+.auth{
+  width:100%;max-width:400px;margin:0 auto;
+  background:linear-gradient(180deg,#121820ee,#0a0e16f2);
+  backdrop-filter:blur(16px);
+  padding:18px 18px 22px;border-radius:22px;
+  border:1px solid #c9a35a55;
+  box-shadow:0 20px 50px #000c, inset 0 1px 0 #ffffff14;
 }
-.board{
-  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);
-  display:flex;gap:4px;z-index:2;
-}
-
-.seat{
-  position:absolute;width:92px;transform:translate(-50%,-50%);
-  display:flex;flex-direction:column;align-items:center;z-index:3;
-}
-.seat.empty .avatar{background:#0b1220aa;border-color:#3a4a63;color:#4d5d78}
-.avatar{
-  width:52px;height:52px;border-radius:50%;
-  background:linear-gradient(180deg,#3a6aa8,#1d3f6e);
-  border:3px solid #d7b15a;
-  display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:16px;box-shadow:0 4px 10px #0009;
-}
-.seat.me .avatar{border-color:#fff;box-shadow:0 0 0 2px #f0c33a,0 4px 10px #0009}
-.seat.win .avatar{border-color:#7dff9a;box-shadow:0 0 16px #3dff7a}
-.seat.fold{opacity:.45}
-.clock{
-  position:relative;width:60px;height:60px;border-radius:50%;padding:3px;
-  background:conic-gradient(var(--c,#3dff7a) calc(var(--p,100)*1%), #ffffff22 0);
-  display:flex;align-items:center;justify-content:center;
-}
-.clock .avatar{width:50px;height:50px;margin:0;border-width:2px}
-.clock-num{
-  position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;
-  background:#0b0f18;border:2px solid var(--c,#3dff7a);color:#fff;
-  font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 2px 6px #000a;
-}
-.clock.green{--c:#3dff7a}
-.clock.orange{--c:#ff9f1a}
-.clock.red{--c:#ff3b3b}
-.plate{
-  margin-top:-8px;background:#0b0f18ee;border:1px solid #d7b15a77;border-radius:8px;
-  padding:3px 7px;min-width:86px;text-align:center;font-size:11px;line-height:1.25;
-}
-.plate b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
-.chips{color:#ffd24a;font-weight:700}
-.mini-cards{display:flex;gap:1px;margin-top:3px;height:28px}
-.seat-cards .card{width:18px;height:26px;font-size:8px;padding:1px;border-radius:3px}
-
-.s0{left:50%;top:88%}
-.s1{left:84%;top:72%}
-.s2{left:86%;top:32%}
-.s3{left:50%;top:12%}
-.s4{left:14%;top:32%}
-.s5{left:16%;top:72%}
-
-.card{
-  width:42px;height:60px;background:#f7f3ea;color:#161616;border-radius:6px;
-  padding:3px 4px;font-weight:800;display:flex;flex-direction:column;justify-content:space-between;
-  box-shadow:0 3px 6px #0008;font-size:12px;flex:0 0 auto;
-}
-.card .suit{font-size:18px;text-align:center;line-height:1}
-.red{color:#d21f1f}
-.back{
-  background:repeating-linear-gradient(45deg,#1a3f86,#1a3f86 6px,#2450a6 6px,#2450a6 12px);
-  border:2px solid #c9d8ff;color:#fff;justify-content:center;align-items:center;font-size:8px;
-}
-
-.hero{
-  position:absolute;left:50%;bottom:128px;transform:translateX(-50%);
-  display:flex;gap:3px;z-index:4;
-}
-.hero .card{width:52px;height:74px;font-size:14px}
-.hero .card .suit{font-size:22px}
-
-.bottom{
-  position:absolute;left:0;right:0;bottom:0;
-  background:linear-gradient(#0000,#070b14 28%);
-  padding:8px 10px 10px;z-index:5;
-}
-.betrow{display:flex;gap:8px;margin-bottom:8px}
-.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-.actions button{min-width:110px;padding:11px 10px;border-radius:22px;font-size:12px}
-
-.log{
-  position:absolute;left:8px;top:8px;width:min(240px,42vw);max-height:22%;
-  overflow:auto;background:#0006;border-radius:8px;padding:6px;font-size:11px;
-  color:#c9d7ea;z-index:4;pointer-events:none;
-}
-
-@media(max-width:700px){
-  .rail{padding:12px;border-radius:46%}
-  .felt{border-radius:46%}
-  .avatar{width:44px;height:44px}
-  .seat{width:78px}
-  .card{width:34px;height:50px}
-  .hero{bottom:122px}
-  .hero .card{width:42px;height:62px}
-  .actions button{min-width:86px;font-size:11px;padding:10px 8px}
-}
+.auth .tag{text-align:center;color:#c9a35a;letter-spacing:2px;font-size:11px;font-weight:800;margin:0 0 12px}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:12px;z-index:20}
+.modal.show{display:flex}
+.box{background:#121a2c;border:1px solid #2c3a58;border-radius:16px;padding:18px;width:min(460px,96vw)}
+.box.rules{width:min(640px,96vw);max-height:88vh;display:flex;flex-direction:column}
+.rules-body{overflow:auto;flex:1;padding-right:6px;font-size:13px;line-height:1.45;color:#d7e2f0}
+.rules-body h3{color:#ffd24a;margin:14px 0 6px;font-size:14px}
+.rules-body p, .rules-body li{margin:0 0 6px;color:#c5d3e6}
+.rules-body ul{margin:0 0 8px;padding-left:18px}
+.checkline{display:flex;gap:8px;align-items:flex-start;margin:10px 0;font-size:13px;color:#c5d3e6}
+.checkline input{width:auto;margin:3px 0 0}
+.pix{background:#0b1220;border-radius:10px;padding:10px;margin:8px 0;word-break:break-all}
+.muted{color:#9db0c8;font-size:13px}
+.err{color:#ff8b8b;font-size:13px;min-height:18px}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="topbar">
-    <div class="brand">OMAHA 5</div>
-    <div class="meta">Sala <span id="roomLabel">-</span> · Saldo <span class="money" id="credits">0</span></div>
-    <div class="status" id="connStatus">Desconectado</div>
-  </div>
-
-  <div class="lobby" id="connectPanel">
-    <div class="row">
-      <input id="name" placeholder="Seu nome" maxlength="18">
-      <input id="room" placeholder="Sala (ex.: 1234)" maxlength="12">
-      <button id="join">ENTRAR</button>
-    </div>
-  </div>
-
-  <div class="stage">
-    <div class="felt-wrap">
-      <div class="rail">
-        <div class="felt">
-          <div class="felt-logo">OMAHA 5</div>
-          <div class="pot" id="pot">Pote 0</div>
-          <div class="board" id="board"></div>
-          <div id="seats"></div>
-        </div>
-      </div>
-    </div>
-    <div class="hero" id="heroCards"></div>
-    <div class="log" id="log"></div>
-    <div class="bottom" id="gamePanel" style="display:none">
-      <div class="betrow">
-        <input id="bet" type="number" min="1" step="1" placeholder="Valor da aposta">
-        <button class="ok" id="confirmBet">CONFIRMAR</button>
-        <button class="ghost" id="leave">SAIR</button>
-      </div>
-      <div class="actions">
-        <button id="start">NOVA RODADA</button>
-        <button class="secondary" id="flop">ABRIR FLOP</button>
-        <button class="ok" id="play">DISPUTAR</button>
-        <button class="danger" id="fold">DESISTIR</button>
-        <button class="secondary" id="turn">TURN</button>
-        <button class="secondary" id="river">RIVER</button>
-      </div>
-    </div>
-  </div>
-</div>
-
+<div class="wrap" id="app"></div>
 <script>
-let ws=null, myId=null, state=null;
-const $=id=>document.getElementById(id);
-function clockColor(sec){ if(sec>12) return 'green'; if(sec>6) return 'orange'; return 'red'; }
-function updateClock(){
-  const el=document.querySelector('[data-clock]');
-  if(!el || !state || !state.turnEndsAt) return;
-  const total=state.turnMs||18000;
-  const left=Math.max(0, state.turnEndsAt - Date.now());
-  const sec=Math.ceil(left/1000);
-  el.className='clock '+clockColor(sec);
-  el.style.setProperty('--p', (left/total)*100);
-  const n=el.querySelector('.clock-num');
-  if(n) n.textContent=sec;
+const TABLES = [
+  {id:'iniciante', name:'Iniciante', buy:10, blinds:'0,25 / 0,50'},
+  {id:'mediana', name:'Mediana', buy:25, blinds:'0,50 / 1,00'},
+  {id:'dificil', name:'Difícil', buy:55, blinds:'1,00 / 2,00'},
+  {id:'semipro', name:'Semipro', buy:100, blinds:'2,00 / 5,00'},
+  {id:'profissional', name:'Profissional', buy:200, blinds:'5,00 / 10,00'}
+];
+function tableThumb(t){
+  return `<img src="/assets/tables/${t.id}.png" alt="${t.name}">`;
 }
-setInterval(updateClock, 200);
-const suits={S:'♠',H:'♥',D:'♦',C:'♣'};
-function cardHtml(c,hidden=false,small=false){
-  if(hidden||!c) return `<div class="card back"${small?' style="width:16px;height:24px"':''}></div>`;
-  const red=c.s==='H'||c.s==='D'?' red':'';
-  return `<div class="card${red}"><span>${c.r}</span><span class="suit">${suits[c.s]}</span></div>`;
+const brl = n => 'R$ ' + Number(n||0).toFixed(2).replace('.',',');
+let token=localStorage.getItem('pdg_token')||'', profile=null, rulesRead=false, rulesAccepted=false, authMode='login';
+async function api(path, body, method){
+  const opt={ method: method|| (body?'POST':'GET'), headers:{ 'Content-Type':'application/json' } };
+  if(token) opt.headers.Authorization='Bearer '+token;
+  if(body) opt.body=JSON.stringify(body);
+  const r=await fetch(path, opt);
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||'Erro');
+  return j;
 }
-function log(msg){
-  const el=$('log'); el.innerHTML += `<div>${msg}</div>`; el.scrollTop=el.scrollHeight;
+
+function rulesHtml(){
+  return `<h3>1. Aceitação</h3>
+<p>Ao criar conta, entrar ou jogar no Poker da Galera, você declara ter lido, entendido e aceito estas regras na íntegra. Se não concordar, não utilize a plataforma.</p>
+<h3>2. Idade e responsabilidade</h3>
+<ul>
+<li>O acesso é exclusivo para maiores de 18 anos.</li>
+<li>Você é responsável por todas as ações feitas na sua conta.</li>
+<li>Jogue apenas com dinheiro que pode perder. A plataforma não se responsabiliza por prejuízos de jogo.</li>
+</ul>
+<h3>3. Jogo limpo — trapaça é proibida</h3>
+<p>É estritamente proibido qualquer tipo de trapaça, fraude ou conduta desleal, incluindo:</p>
+<ul>
+<li>Uso de bots, scripts, solvers em tempo real, HUDs não autorizados ou qualquer software de assistência.</li>
+<li>Colusão: dois ou mais jogadores combinando jogadas, sinais, chip dumping ou divisão combinada de potes.</li>
+<li>Multiaccounting: criar ou usar mais de uma conta, contas de terceiros ou contas para se beneficiar em mesas.</li>
+<li>Compartilhar cartas, prints da mão ou informação privilegiada com quem está na mesma mesa.</li>
+<li>Explorar bugs, falhas de conexão, atraso proposital ou qualquer erro do sistema em benefício próprio.</li>
+<li>Manipular resultados, fingir desconexão para fugir de apostas ou prejudicar a mesa.</li>
+<li>Usar linguagem ofensiva, ameaça, assédio, racismo, preconceito ou intimidação.</li>
+</ul>
+<h3>4. Conduta na mesa</h3>
+<ul>
+<li>Respeite os tempos de ação. Abandono repetido pode gerar kick ou bloqueio.</li>
+<li>Não é permitido combinar fold, check ou raise com outros jogadores.</li>
+<li>O jogo é <b>Omaha 5 (PLO5)</b>, limite pote: cada jogador recebe 5 cartas fechadas e o board tem 5 comunitárias (flop 3, turn 1, river 1).</li>
+<li>A combinação válida é sempre <b>exatamente 2 cartas da mão + exatamente 3 comunitárias</b>. Não vale usar 1 ou 3 da mão.</li>
+<li>Aposta máxima é o tamanho do pote (pot-limit). All-in só quando a stack cabe no pote ou é menor que o máximo.</li>
+<li>Blinds, ordem de ação, check, call, raise e ruas seguem o Omaha 5 padrão. A decisão do sistema prevalece.</li>
+</ul>
+<h3>5. Conta, saldo, PIX, depósitos e saques</h3>
+<ul>
+<li>O saldo da conta é de uso exclusivo do titular.</li>
+<li>Depósitos via PIX exigem comprovante enviado pelo WhatsApp (16) 99295-4354. O crédito só ocorre após conferência da equipe.</li>
+<li>Comprovante falso, valor divergente ou PIX de terceiro sem identificação pode ser recusado e a conta bloqueada.</li>
+<li>Saques exigem chave PIX válida do titular. O pedido retém o valor e o pagamento é processado após o prazo informado, com confirmação da equipe.</li>
+<li>A plataforma pode reter, estornar ou cancelar valores ligados a fraude, chargeback, conta irregular ou violação destas regras.</li>
+</ul>
+<h3>6. Penalidades</h3>
+<p>Em caso de violação, a equipe pode, sem aviso prévio:</p>
+<ul>
+<li>Advertir, suspender ou banir a conta de forma permanente.</li>
+<li>Confiscar saldo, fichas em mesa, depósitos pendentes e saques.</li>
+<li>Anular mãos, potes ou resultados obtidos de forma irregular.</li>
+<li>Recusar novos cadastros do mesmo CPF, e-mail, dispositivo ou PIX.</li>
+</ul>
+<h3>7. Equipe e decisões</h3>
+<ul>
+<li>A administração do Poker da Galera tem a palavra final em denúncias, mesas, saldo e cadastros.</li>
+<li>Falhas técnicas devem ser reportadas. Usar falha de propósito é violação grave.</li>
+<li>Estas regras podem ser atualizadas. O uso contínuo após alteração implica aceitação.</li>
+</ul>
+<p><b>Ao marcar “Li e aceito”, você concorda em jogar limpo, sem trapaças, e assume as consequências de qualquer infração.</b></p>`;
 }
-function send(type,payload={}){ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type,...payload})); }
-function initials(name){ return (name||'?').trim().slice(0,2).toUpperCase(); }
-function seatOrder(players){
-  const i=players.findIndex(p=>p.id===myId);
-  if(i<0) return players;
-  return [...players.slice(i), ...players.slice(0,i)];
+
+function applyLoginArt(){
+  const screen = document.querySelector('.auth-screen');
+  const img = document.getElementById('logo');
+  if(screen) screen.style.backgroundImage = 'linear-gradient(180deg,#05070c66 0%,#05070c88 42%,#05070cee 100%),url("/assets/login-bg.png")';
+  if(img){ img.src='/assets/logo.png'; img.onerror=()=>{ img.style.display='none'; }; }
 }
-function render(){
-  if(!state)return;
-  $('gamePanel').style.display='block';
-  $('connectPanel').style.display='none';
-  $('roomLabel').textContent=state.room;
-  const me=state.players.find(p=>p.id===myId);
-  $('credits').textContent=me?me.credits:0;
-  const pot=(state.players||[]).reduce((s,p)=>s+(p.bet||0),0);
-  $('pot').textContent='Pote '+pot;
-  $('board').innerHTML=(state.board||[]).map(c=>cardHtml(c)).join('') + Array.from({length:Math.max(0,5-(state.board||[]).length)},()=>cardHtml(null,true)).join('');
-  const reveal=state.stage==='showdown';
-  const ordered=seatOrder(state.players||[]);
-  let html='';
-  for(let i=0;i<6;i++){
-    const p=ordered[i];
-    if(!p){
-      html+=`<div class="seat s${i} empty"><div class="avatar">+</div><div class="plate"><b>Vazio</b><div class="chips">—</div></div></div>`;
-      continue;
-    }
-    const mine=p.id===myId;
-    const open=mine||reveal;
-    const folded=p.decision==='fold';
-    const acting=state.actorId===p.id && state.stage==='flop';
-    const mini=(!mine && (p.hand||[]).length)? `<div class="mini-cards seat-cards">${(p.hand||[]).slice(0,5).map(c=>cardHtml(c,!open||!c,true)).join('')}</div>`:'';
-    const face=acting
-      ? `<div class="clock green" data-clock="1"><div class="avatar">${initials(p.name)}</div><div class="clock-num">18</div></div>`
-      : `<div class="avatar">${initials(p.name)}</div>`;
-    html+=`<div class="seat s${i} ${mine?'me':''} ${p.winner?'win':''} ${folded?'fold':''}">
-      ${face}
-      <div class="plate"><b>${p.name}</b><div class="chips">${p.credits}</div></div>
-      ${mine?'':mini}
-    </div>`;
+async function refresh(){
+  if(!token){ renderAuth(); return; }
+  try {
+    profile = await api('/api/me');
+    renderLobby();
+  } catch(e) {
+    token=''; localStorage.removeItem('pdg_token');
+    renderAuth();
   }
-  $('seats').innerHTML=html;
-  const myHand=me&&me.hand&&me.hand.length?me.hand:[];
-  $('heroCards').innerHTML=myHand.map(c=>cardHtml(c,false)).join('');
-  const host=state.hostId===myId;
-  const s=state.stage;
-  const decided=me && me.decision;
-  $('start').disabled=!host || !(s==='idle'||s==='betting'||s==='showdown'||s==='folded');
-  $('confirmBet').disabled=s!=='betting' || !!(me && me.bet);
-  $('bet').disabled=s!=='betting' || !!(me && me.bet);
-  $('flop').disabled=!host || s!=='preflop';
-  const myTurn=s==='flop' && state.actorId===myId && !decided;
-  $('play').disabled=!myTurn;
-  $('fold').disabled=!myTurn;
-  updateClock();
-  $('turn').disabled=!host || s!=='live';
-  $('river').disabled=!host || s!=='turn';
 }
-$('join').onclick=()=>{
-  const name=$('name').value.trim()||'Jogador';
-  const room=$('room').value.trim()||'1234';
-  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host);
-  $('connStatus').textContent='Conectando...';
-  ws.onopen=()=>send('join',{name,room});
-  ws.onmessage=e=>{
-    const m=JSON.parse(e.data);
-    if(m.type==='joined'){myId=m.id;$('connStatus').textContent='Na sala';log('Entrou na sala '+m.room);}
-    if(m.type==='state'){state=m.state;render();}
-    if(m.type==='log')log(m.message);
-    if(m.type==='error')log('Erro: '+m.message);
+
+function renderAuth(){
+  const signup = authMode==='signup';
+  const app = document.getElementById('app');
+  app.className = 'auth-page';
+  app.innerHTML = `<div class="auth-screen">
+    <div class="auth">
+    <img id="logo" class="logo" alt="Poker da Galera">
+    <div class="tag">${signup?'CRIAR CONTA':'ENTRAR'}</div>
+    ${signup?`<input id="user" placeholder="Nome de usuário" maxlength="18" autocomplete="username">`:''}
+    <input id="email" type="email" placeholder="E-mail" autocomplete="email">
+    <input id="pass" type="password" placeholder="Senha" autocomplete="${signup?'new-password':'current-password'}">
+    ${signup?`
+    <label class="checkline"><input type="checkbox" id="age"> Tenho 18 anos ou mais</label>
+    <button class="sec" type="button" onclick="openRules()" style="width:100%">Ler regras da plataforma</button>
+    <label class="checkline"><input type="checkbox" id="rules"> Li e aceito as regras da plataforma (proibido trapaça, colusão, multiaccount e fraude)</label>
+    `:''}
+    <div class="err" id="err"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      ${signup
+        ? `<button onclick="signup()" style="flex:1">Cadastrar</button><button class="sec" onclick="authMode='login';renderAuth()">Já tenho conta</button>`
+        : `<button onclick="login()" style="flex:1">Entrar</button><button class="sec" onclick="authMode='signup';renderAuth()">Cadastrar</button>`}
+    </div>
+    <div class="modal" id="rulesModal"><div class="box rules">
+      <h3 style="margin:0 0 8px;color:#ffd24a">Regras da plataforma</h3>
+      <div class="rules-body" id="rulesBody">${rulesHtml()}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="ok" onclick="acceptRules()">Li e aceito</button>
+        <button class="sec" onclick="closeRules()">Fechar</button>
+      </div>
+    </div></div>
+  </div>
+  </div>`;
+  if(signup) syncRulesCheck();
+  applyLoginArt();
+}
+function openRules(){
+  rulesRead = true;
+  $('rulesModal').classList.add('show');
+}
+function closeRules(){ $('rulesModal').classList.remove('show'); }
+function acceptRules(){
+  rulesRead = true;
+  rulesAccepted = true;
+  $('rules').checked = true;
+  closeRules();
+}
+function syncRulesCheck(){
+  const el = $('rules');
+  if(!el) return;
+  el.onchange = () => {
+    if(el.checked && !rulesRead){
+      el.checked = false;
+      $('err').textContent = 'Abra e leia as regras antes de aceitar.';
+      openRules();
+      return;
+    }
+    rulesAccepted = el.checked;
   };
-  ws.onclose=()=>{$('connStatus').textContent='Desconectado';log('Conexão encerrada.');};
-};
-$('start').onclick=()=>send('start');
-$('confirmBet').onclick=()=>send('bet',{amount:$('bet').value});
-$('flop').onclick=()=>send('reveal',{stage:'flop'});
-$('play').onclick=()=>send('decision',{choice:'play'});
-$('fold').onclick=()=>send('decision',{choice:'fold'});
-$('turn').onclick=()=>send('reveal',{stage:'turn'});
-$('river').onclick=()=>send('reveal',{stage:'river'});
-$('leave').onclick=()=>{ if(ws)ws.close(); $('gamePanel').style.display='none'; $('connectPanel').style.display='block'; };
+}
+async function login(){
+  const email = ($('email').value||'').trim();
+  const password = $('pass').value||'';
+  if(!email || !password){ $('err').textContent='Informe e-mail e senha.'; return; }
+  try {
+    const data = await api('/api/login', { email, password });
+    token = data.token; localStorage.setItem('pdg_token', token);
+    profile = data.user; renderLobby();
+  } catch(e) { $('err').textContent = e.message; }
+}
+async function signup(){
+  const username = ($('user').value||'').trim();
+  const email = ($('email').value||'').trim();
+  const password = $('pass').value||'';
+  if(!username){ $('err').textContent='Informe o nome de usuário.'; return; }
+  if(!email){ $('err').textContent='Informe o e-mail.'; return; }
+  if(password.length < 6){ $('err').textContent='A senha deve ter pelo menos 6 caracteres.'; return; }
+  if(!$('age').checked){ $('err').textContent='Confirme que tem 18 anos.'; return; }
+  if(!rulesRead || !$('rules').checked){ $('err').textContent='Leia e aceite as regras da plataforma para se cadastrar.'; openRules(); return; }
+  try {
+    const data = await api('/api/register', { email, username, password });
+    if(data.token){ token=data.token; localStorage.setItem('pdg_token', token); profile=data.user; renderLobby(); return; }
+    authMode='login'; renderAuth();
+    $('err').textContent='Conta criada. Entre com e-mail e senha.';
+  } catch(e) { $('err').textContent = e.message; }
+}
+function $(id){ return document.getElementById(id); }
+
+function renderLobby(){
+  const admin = profile && profile.role==='admin' ? `<a href="/admin.html"><button class="sec">Admin</button></a>` : '';
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `
+    <div class="top">
+      <div class="brand-row">
+        <img class="brand-logo" src="/assets/logo.png" alt="">
+        <div class="brand">POKER DA GALERA<small>OMAHA 5 · MESAS AO VIVO</small></div>
+      </div>
+      <div class="saldo">Saldo <b>${brl(profile&&profile.balance)}</b></div>
+      <button onclick="openWallet()">Carteira</button>
+      ${admin}
+      <button class="sec" onclick="logout()">Sair</button>
+    </div>
+    <p class="muted">Escolha a mesa. O buy-in sai do saldo. <a href="#" onclick="openRulesLobby();return false;" style="color:#f3d27a">Regras</a></p>
+    <div class="grid">${TABLES.map(t=>`
+      <div class="tcard">
+        <div class="tthumb">${tableThumb(t)}</div>
+        <div>
+          <h3>${t.name}</h3>
+          <div class="tmeta">Blinds ${t.blinds} · 6 jogadores</div>
+        </div>
+        <div>
+          <div class="tbuy">${brl(t.buy)}<span>BUY-IN</span></div>
+          <button style="margin-top:6px;width:100%" onclick="sit('${t.id}',${t.buy})">Sentar</button>
+        </div>
+      </div>`).join('')}</div>
+    <div class="modal" id="wallet"><div class="box" id="walletBox"></div></div>
+    <div class="modal" id="rulesModal"><div class="box rules">
+      <h3 style="margin:0 0 8px;color:#ffd24a">Regras da plataforma</h3>
+      <div class="rules-body">${rulesHtml()}</div>
+      <div style="margin-top:12px"><button class="sec" onclick="document.getElementById('rulesModal').classList.remove('show')">Fechar</button></div>
+    </div></div>`;
+  if(new URLSearchParams(location.search).get('add')==='1'){
+    setTimeout(()=>{ openWallet(); walletView('add'); }, 50);
+  }
+}
+function openRulesLobby(){ document.getElementById('rulesModal').classList.add('show'); }
+
+function sit(id, buy){
+  if(!profile || Number(profile.balance) < buy){ alert('Saldo insuficiente. Use a carteira para adicionar.'); return; }
+  location.href = '/game.html?table='+id;
+}
+
+function openWallet(){
+  $('wallet').classList.add('show');
+  walletView('home');
+  $('wallet').onclick = e => { if(e.target.id==='wallet') $('wallet').classList.remove('show'); };
+}
+function walletView(mode){
+  const pix = APP_CONFIG.PIX_KEY, name = APP_CONFIG.PIX_NAME;
+  if(mode==='home'){
+    $('walletBox').innerHTML = `<h3>Carteira</h3><p>Saldo ${brl(profile.balance)}</p>
+      <button class="ok" onclick="walletView('add')">Adicionar</button>
+      <button class="sec" onclick="walletView('out')">Sacar</button>
+      <button class="sec" onclick="$('wallet').classList.remove('show')">Fechar</button>
+      <div id="hist"></div>`;
+    loadHist();
+  }
+  if(mode==='add'){
+    const wa = APP_CONFIG.WA_DISPLAY || '(16) 99295-4354';
+    $('walletBox').innerHTML = `<h3>Adicionar saldo</h3>
+      <div class="pix"><b>Chave PIX (CNPJ):</b><br>${pix}<br><br><b>${name}</b></div>
+      <p class="muted">Pague via PIX e envie o comprovante no WhatsApp ${wa}. O saldo entra após conferência.</p>
+      <input id="depAmt" type="number" min="1" step="0.01" placeholder="Valor pago (R$) — opcional">
+      <div class="err" id="werr"></div>
+      <button class="ok" onclick="openWhatsAppReceipt()" style="width:100%;background:#25D366;color:#fff;box-shadow:none">Enviar comprovante no WhatsApp</button>
+      <button class="sec" onclick="walletView('home')">Voltar</button>`;
+  }
+  if(mode==='out'){
+    $('walletBox').innerHTML = `<h3>Saque</h3>
+      <p class="muted">Informe sua chave PIX e o valor. O pagamento é feito após 2 horas, com confirmação no painel.</p>
+      <input id="pixOut" placeholder="Sua chave PIX">
+      <input id="outAmt" type="number" min="1" step="0.01" placeholder="Valor (R$)">
+      <div class="err" id="werr"></div>
+      <button onclick="sendWithdraw()">Solicitar saque</button>
+      <button class="sec" onclick="walletView('home')">Voltar</button>`;
+  }
+}
+function openWhatsAppReceipt(){
+  const phone = (APP_CONFIG.WA_PHONE || '5516992954354').replace(/\D/g,'');
+  const user = (profile && (profile.username || profile.email)) || '';
+  const amt = Number(($('depAmt') && $('depAmt').value) || 0);
+  let text = 'Olá! Segue o comprovante PIX do Poker da Galera.';
+  if(user) text += '\nUsuário: ' + user;
+  if(amt>0) text += '\nValor: ' + brl(amt);
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(text), '_blank');
+}
+async function sendWithdraw(){
+  try {
+    await api('/api/withdraw', { amount: Number($('outAmt').value), pixKey: $('pixOut').value.trim() });
+    alert('Saque solicitado. Pagamento em até 2 horas após análise.');
+    await refresh();
+  } catch(e) { $('werr').textContent=e.message; }
+}
+async function loadHist(){
+  try {
+    const h = await api('/api/history');
+    $('hist').innerHTML = `<p class="muted">Depósitos</p>${(h.deposits||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}
+      <p class="muted">Saques</p>${(h.withdrawals||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}`;
+  } catch(e) { $('hist').innerHTML=''; }
+}
+async function logout(){
+  try { await api('/api/logout', {}); } catch(_){}
+  token=''; localStorage.removeItem('pdg_token'); location.reload();
+}
+refresh();
 </script>
 </body>
 </html>

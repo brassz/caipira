@@ -1,0 +1,12 @@
+Coloque aqui a imagem de cada mesa (PNG, JPG ou WEBP).
+O nome do arquivo deve ser o id da mesa:
+
+  iniciante.png
+  mediana.png
+  dificil.png
+  semipro.png
+  profissional.png
+
+Tamanho sugerido: 400 x 280 (ou similar, horizontal).
+Formatos: .png, .jpg ou .webp
+Se o arquivo não existir, o lobby mostra o felt verde padrão.

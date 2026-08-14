@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Poker da Galera</title>
+<script src="/config.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff;overflow:hidden}
+.app{height:100%;position:relative;max-width:430px;margin:auto;width:100%}
+.lobby{
+  position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+  background:#070b14ee;
+}
+.lobby .box{width:min(420px,92vw);background:#121a2c;border:1px solid #2c3a58;border-radius:16px;padding:18px}
+.lobby h2{margin:0 0 12px;color:#ffd24a;text-align:center}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input,button{border:0;border-radius:10px;padding:12px;font-size:15px}
+input{flex:1;min-width:110px;background:#1b2438;color:#fff;outline:none}
+button{font-weight:800;cursor:pointer}
+button:disabled{opacity:.38;cursor:default}
+
+.stage{position:absolute;inset:0}
+.felt-wrap{position:absolute;inset:6px 6px calc(128px + env(safe-area-inset-bottom))}
+.rail{
+  width:100%;height:100%;border-radius:50%;
+  background:linear-gradient(180deg,#8a5a28,#5a3816 40%,#3d250e);
+  padding:16px;box-shadow:0 18px 40px #000a, inset 0 2px 0 #e6c27a88;
+}
+.felt{
+  width:100%;height:100%;border-radius:50%;position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 42%, #1f8a55 0%, #0f5c38 42%, #083d26 78%, #052818 100%);
+  box-shadow:inset 0 0 0 3px #c9a35a55, inset 0 0 70px #0008;
+}
+.pot{
+  position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);
+  min-width:86px;text-align:center;background:#0007;border:1px solid #e7c56a66;
+  border-radius:16px;padding:4px 12px;font-size:13px;color:#ffe08a;z-index:2;
+}
+.board{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);display:flex;gap:4px;z-index:2}
+.seat{position:absolute;width:96px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;z-index:3}
+.seat.empty .avatar{background:#0b1220aa;border-color:#3a4a63;color:#4d5d78}
+.avatar{
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(180deg,#3a6aa8,#1d3f6e);
+  border:3px solid #d7b15a;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:16px;box-shadow:0 4px 10px #0009;
+}
+.seat.me .avatar{border-color:#fff;box-shadow:0 0 0 2px #f0c33a}
+.seat.win .avatar{border-color:#7dff9a;box-shadow:0 0 16px #3dff7a}
+.seat.fold{opacity:.42}
+.clock{
+  position:relative;width:60px;height:60px;border-radius:50%;padding:3px;
+  background:conic-gradient(var(--c,#3dff7a) calc(var(--p,100)*1%), #ffffff22 0);
+  display:flex;align-items:center;justify-content:center;
+}
+.clock .avatar{width:50px;height:50px;margin:0;border-width:2px}
+.clock-num{
+  position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;
+  background:#0b0f18;border:2px solid var(--c,#3dff7a);color:#fff;
+  font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;
+}
+.clock.green{--c:#3dff7a}.clock.orange{--c:#ff9f1a}.clock.red{--c:#ff3b3b}
+.plate{
+  margin-top:-8px;background:#0b0f18ee;border:1px solid #d7b15a77;border-radius:8px;
+  padding:3px 7px;min-width:86px;text-align:center;font-size:11px;
+}
+.plate b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+.chips{color:#ffd24a;font-weight:700}
+.betchip{
+  position:absolute;top:-14px;background:#1a1208;border:1px solid #e7c56a;color:#ffe08a;
+  border-radius:10px;font-size:10px;padding:1px 6px;font-weight:800;
+}
+.btnD{
+  position:absolute;left:-8px;top:18px;width:18px;height:18px;border-radius:50%;
+  background:#f0c33a;color:#1a1406;font-size:10px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;
+}
+.blind{
+  position:absolute;right:-8px;top:18px;font-size:9px;background:#0009;border-radius:6px;padding:1px 4px;color:#cde
+}
+.s0{left:50%;top:88%}.s1{left:84%;top:72%}.s2{left:86%;top:32%}
+.s3{left:50%;top:12%}.s4{left:14%;top:32%}.s5{left:16%;top:72%}
+.card{
+  width:42px;height:60px;background:#f7f3ea;color:#161616;border-radius:6px;
+  padding:3px 4px;font-weight:800;display:flex;flex-direction:column;justify-content:space-between;
+  box-shadow:0 3px 6px #0008;font-size:12px;flex:0 0 auto;
+}
+.card .suit{font-size:18px;text-align:center;line-height:1}
+.red{color:#d21f1f}
+.back{background:repeating-linear-gradient(45deg,#1a3f86,#1a3f86 6px,#2450a6 6px,#2450a6 12px);border:2px solid #c9d8ff}
+.hero{position:absolute;left:50%;bottom:calc(132px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:3px;z-index:4}
+.hero .card{width:50px;height:72px;font-size:14px}
+.hero .card .suit{font-size:22px}
+.mini{display:flex;gap:1px;margin-top:2px}
+.mini .card{width:16px;height:24px;font-size:8px;padding:1px;border-radius:3px}
+.win-banner{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  z-index:20;pointer-events:none;text-align:center;
+}
+.win-banner.show{display:flex}
+.win-banner .who{font-size:clamp(28px,7vw,56px);font-weight:900;text-transform:uppercase;text-shadow:0 4px 18px #000}
+.win-banner .amt{font-size:clamp(36px,8vw,72px);font-weight:900;color:#ffd24a;text-shadow:0 4px 18px #000}
+.bottom{
+  position:absolute;left:0;right:0;bottom:0;z-index:5;padding:8px 8px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(#0000,#070b14 40%);
+}
+.presets{display:flex;gap:6px;justify-content:center;margin-bottom:6px;align-items:center;flex-wrap:wrap}
+.presets button{background:#243049;color:#fff;border-radius:16px;padding:10px 12px;font-size:13px;min-height:44px}
+.presets input{width:110px;min-width:90px;background:#1b2438;color:#ffd24a;font-weight:800;text-align:center;padding:10px;font-size:16px;min-height:44px}
+.actions{display:flex;gap:8px;justify-content:center}
+.actions button{flex:1;max-width:none;padding:16px 8px;border-radius:24px;font-size:15px;min-height:52px}
+.fold{background:#c43333;color:#fff}
+.check{background:#2d6adf;color:#fff}
+.raise{background:#f0c33a;color:#1a1406}
+.leave{
+  position:absolute;right:8px;top:8px;z-index:6;background:#0007;color:#fff;
+  width:36px;height:36px;border-radius:50%;font-size:16px;
+}
+.bust{
+  position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
+  background:#05070ccc;padding:16px;
+}
+.bust.show{display:flex}
+.bust .box{width:min(380px,94vw);background:#121a2c;border:1px solid #c9a35a66;border-radius:16px;padding:20px;text-align:center}
+.bust h3{margin:0 0 10px;color:#f3d27a}
+.bust .row{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.bust button{min-width:120px}
+@media(max-width:700px){
+  .rail{padding:10px;border-radius:48%}.felt{border-radius:48%}
+  .avatar{width:44px;height:44px}.seat{width:78px}
+  .hero .card{width:38px;height:54px}
+  .card{width:34px;height:48px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="lobby" id="connectPanel">
+    <div class="box">
+      <h2>Entrando na mesa</h2>
+      <div class="muted" id="joinMsg" style="color:#9db0c8;text-align:center"></div>
+    </div>
+  </div>
+  <div class="stage">
+    <button class="leave" id="leave" style="display:none">✕</button>
+    <div class="felt-wrap">
+      <div class="rail"><div class="felt">
+        <div class="pot" id="pot">0</div>
+        <div class="board" id="board"></div>
+        <div id="seats"></div>
+      </div></div>
+    </div>
+    <div class="hero" id="heroCards"></div>
+    <div class="win-banner" id="winBanner"><div><div class="who" id="winWho"></div><div class="amt" id="winAmt"></div></div></div>
+    <div class="bust" id="bustPanel">
+      <div class="box">
+        <h3 id="bustTitle">Stack zerado</h3>
+        <p class="muted" id="bustMsg" style="color:#9db0c8"></p>
+        <div class="row" id="bustBtns"></div>
+      </div>
+    </div>
+    <div class="bottom" id="gamePanel" style="display:none">
+      <div class="presets">
+        <input id="betAmt" type="number" min="1" step="1" placeholder="Valor">
+        <button id="hpot">1/2</button>
+        <button id="tpot">2/3</button>
+        <button id="ppot">POTE</button>
+        <button id="allin">ALL-IN</button>
+      </div>
+      <div class="actions">
+        <button class="fold" id="fold">FOLD</button>
+        <button class="check" id="call">CHECK</button>
+        <button class="raise" id="raise">BET</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+let ws=null, myId=null, state=null, raiseTo=0, bustOpen=false;
+const $=id=>document.getElementById(id);
+const suits={S:'♠',H:'♥',D:'♦',C:'♣'};
+function money(c){ return (Number(c||0)/100).toFixed(2).replace('.',','); }
+function cardHtml(c,hidden){
+  if(hidden||!c) return '<div class="card back"></div>';
+  const red=c.s==='H'||c.s==='D'?' red':'';
+  return `<div class="card${red}"><span>${c.r||''}</span><span class="suit">${suits[c.s]||''}</span></div>`;
+}
+function send(type,payload={}){ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type,...payload})); }
+function initials(n){ return (n||'?').trim().slice(0,2).toUpperCase(); }
+function seatOrder(ps){
+  const i=ps.findIndex(p=>p.id===myId);
+  if(i<0) return ps;
+  return [...ps.slice(i), ...ps.slice(0,i)];
+}
+function clockColor(sec){ if(sec>12) return 'green'; if(sec>6) return 'orange'; return 'red'; }
+function updateClock(){
+  const el=document.querySelector('[data-clock]');
+  if(!el||!state||!state.turnEndsAt) return;
+  const total=state.turnMs||18000;
+  const left=Math.max(0,state.turnEndsAt-Date.now());
+  el.className='clock '+clockColor(Math.ceil(left/1000));
+  el.style.setProperty('--p', (left/total)*100);
+  const n=el.querySelector('.clock-num');
+  if(n) n.textContent=Math.ceil(left/1000);
+}
+setInterval(updateClock,200);
+function me(){ return (state.players||[]).find(p=>p.id===myId); }
+function minRaiseTo(){
+  const p=me(); if(!p) return 0;
+  return Math.max(state.currentBet + (state.minRaise||state.bb||20), state.currentBet);
+}
+function maxRaiseTo(){
+  const p=me(); if(!p) return 0;
+  if(state.potMaxTo) return state.potMaxTo;
+  const toCall=state.toCall||0;
+  const potCap=p.streetBet + toCall + (state.pot||0) + toCall;
+  return Math.min(p.streetBet + p.credits, potCap);
+}
+function setRaise(v, fromInput){
+  const p=me(); if(!p) return;
+  let n=Number(v);
+  if(fromInput) n=Math.round(n*100);
+  n=Math.floor(n);
+  raiseTo=Number.isFinite(n)?Math.max(minRaiseTo(), Math.min(maxRaiseTo(), n)):minRaiseTo();
+  $('raise').textContent = (state.currentBet? 'RAISE ':'BET ') + money(raiseTo);
+  if(!fromInput && document.activeElement!==$('betAmt')) $('betAmt').value=(raiseTo/100).toFixed(2);
+}
+function render(){
+  if(!state) return;
+  try {
+  $('gamePanel').style.display='block';
+  $('leave').style.display='block';
+  $('connectPanel').style.display='none';
+  $('pot').textContent=money(state.pot||0);
+  const board=state.board||[];
+  $('board').innerHTML=board.map(c=>cardHtml(c)).join('') + Array.from({length:Math.max(0,5-board.length)},()=>cardHtml(null,true)).join('');
+  const reveal=state.stage==='showdown';
+  const ordered=seatOrder(state.players||[]);
+  let html='';
+  for(let i=0;i<6;i++){
+    const p=ordered[i];
+    if(!p){ html+=`<div class="seat s${i} empty"><div class="avatar">+</div><div class="plate"><b>Vazio</b><div class="chips">—</div></div></div>`; continue; }
+    const mine=p.id===myId;
+    const acting=state.actorId===p.id && state.stage!=='showdown' && state.stage!=='idle';
+    const face=acting
+      ? `<div class="clock green" data-clock="1"><div class="avatar">${initials(p.name)}</div><div class="clock-num">18</div></div>`
+      : `<div class="avatar">${initials(p.name)}</div>`;
+    const d=state.dealerId===p.id?'<div class="btnD">D</div>':'';
+    const b=state.sbId===p.id?'<div class="blind">SB</div>':state.bbId===p.id?'<div class="blind">BB</div>':'';
+    const chip=p.streetBet?`<div class="betchip">${money(p.streetBet)}</div>`:'';
+    const mini=(!mine && p.hand&&p.hand.length)? `<div class="mini">${p.hand.map(c=>cardHtml(c,!reveal||!c)).join('')}</div>`:'';
+    html+=`<div class="seat s${i} ${mine?'me':''} ${p.winner?'win':''} ${p.folded?'fold':''}">
+      ${chip}${d}${b}${face}
+      <div class="plate"><b>${p.name}</b><div class="chips">${money(p.credits)}</div></div>
+      ${mine?'':mini}
+    </div>`;
+  }
+  $('seats').innerHTML=html;
+  const p=me();
+  $('heroCards').innerHTML=(p&&p.hand||[]).map(c=>cardHtml(c,false)).join('');
+  const myTurn=!!myId && state.actorId===myId && state.stage!=='showdown' && state.stage!=='idle' && p && !p.folded;
+  const call=state.toCall||0;
+  $('fold').disabled=!myTurn;
+  $('call').disabled=!myTurn;
+  $('raise').disabled=!myTurn || !p || (p.credits<=0 && call<=0);
+  ['hpot','tpot','ppot','allin'].forEach(id=>{ const el=$(id); if(el) el.disabled=!myTurn; });
+  $('call').textContent=call>0?('CALL '+money(call)):'CHECK';
+  $('betAmt').disabled=!myTurn;
+  if(myTurn){
+    raiseTo=0;
+    if(document.activeElement!==$('betAmt')) setRaise(minRaiseTo());
+  } else $('raise').textContent=state.currentBet?'RAISE':'BET';
+  const b=state.banner;
+  const el=$('winBanner');
+  if(b&&b.names&&b.names.length){
+    $('winWho').textContent=b.names.join(' e ');
+    $('winAmt').textContent='+'+money(b.amount);
+    el.classList.add('show');
+  } else el.classList.remove('show');
+  updateClock();
+  maybeBust();
+  } catch(err){ console.error(err); }
+}
+function brl(n){ return 'R$ '+Number(n||0).toFixed(2).replace('.',','); }
+function hideBust(){ bustOpen=false; const el=$('bustPanel'); if(el) el.classList.remove('show'); }
+async function maybeBust(){
+  const p=me();
+  if(!p || p.credits>0){ hideBust(); return; }
+  if(p.inHand && state.stage!=='showdown' && state.stage!=='idle') return;
+  if(bustOpen) return;
+  bustOpen=true;
+  const buy=Number(state.buyIn||0);
+  let wallet=0;
+  try{
+    const tok=localStorage.getItem('pdg_token')||'';
+    const r=await fetch('/api/me',{ headers:{ Authorization:'Bearer '+tok } });
+    const j=await r.json().catch(()=>({}));
+    wallet=Number(j.balance||0);
+  }catch(_){}
+  const panel=$('bustPanel');
+  if(!panel) return;
+  panel.classList.add('show');
+  if(wallet>=buy && buy>0){
+    $('bustTitle').textContent='Fichas acabaram';
+    $('bustMsg').textContent='Você ainda tem '+brl(wallet)+' na carteira. Deseja uma nova entrada de '+brl(buy)+'?';
+    $('bustBtns').innerHTML=`<button class="raise" onclick="doRebuy()">Nova entrada</button>
+      <button class="fold" onclick="leaveTable()">Sair</button>`;
+  } else {
+    $('bustTitle').textContent='Saldo insuficiente';
+    $('bustMsg').textContent='Suas fichas acabaram e a carteira ('+brl(wallet)+') não cobre a entrada de '+brl(buy)+'. Deseja adicionar saldo?';
+    $('bustBtns').innerHTML=`<button class="raise" onclick="goAddSaldo()">Adicionar saldo</button>
+      <button class="fold" onclick="leaveTable()">Sair</button>`;
+  }
+}
+function doRebuy(){ send('rebuy'); }
+function goAddSaldo(){ if(ws) ws.close(); location.href='/?add=1'; }
+function leaveTable(){ if(ws) ws.close(); location.href='/'; }
+$('fold').onclick=()=>send('act',{action:'fold'});
+$('call').onclick=()=>send('act',{action:(state.toCall>0?'call':'check')});
+$('raise').onclick=()=>{ setRaise($('betAmt').value, true); send('act',{action:'raise',to:raiseTo}); };
+$('betAmt').oninput=()=>setRaise($('betAmt').value, true);
+$('hpot').onclick=()=>setRaise(Math.floor((state.pot||0)/2));
+$('tpot').onclick=()=>setRaise(Math.floor((state.pot||0)*2/3));
+$('ppot').onclick=()=>setRaise(state.pot||0);
+$('allin').onclick=()=>setRaise(maxRaiseTo());
+$('leave').onclick=()=>{ if(ws) ws.close(); location.href='/'; };
+
+(async function boot(){
+  const table=new URLSearchParams(location.search).get('table');
+  const tok=localStorage.getItem('pdg_token');
+  if(!tok || !table){ location.href='/'; return; }
+  const msg=document.getElementById('joinMsg');
+  ws=new WebSocket((location.protocol==='https:'?'wss':'ws')+'://'+location.host);
+  ws.onopen=()=>send('join',{ token:tok, table });
+  ws.onmessage=e=>{
+    const m=JSON.parse(e.data);
+    if(m.type==='joined'){ myId=m.id; if(state) render(); }
+    if(m.type==='state'){ state=m.state; render(); }
+    if(m.type==='rebuy-ok'){ hideBust(); }
+    if(m.type==='rebuy-fail'){
+      if(m.needDeposit) goAddSaldo();
+      else { const t=$('bustMsg'); if(t) t.textContent=m.message||'Não foi possível entrar de novo.'; }
+    }
+    if(m.type==='error'){ if(msg) msg.textContent=m.message; setTimeout(()=>location.href='/', 2000); }
+  };
+  ws.onclose=()=>{ if(!state) { if(msg) msg.textContent='Conexão encerrada'; } };
+})();
+</script>
+</body>
+</html>
