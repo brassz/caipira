@@ -1,6 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+const { WebSocket } = require('ws');
 const { createClient } = require('@supabase/supabase-js');
+
+if (typeof globalThis.WebSocket === 'undefined') globalThis.WebSocket = WebSocket;
 
 (function loadEnv() {
   try {
@@ -19,7 +22,8 @@ function db() {
   if (!url || !key) throw new Error('Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env');
   if (!client) {
     client = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false }
+      auth: { persistSession: false, autoRefreshToken: false },
+      realtime: { transport: WebSocket }
     });
   }
   return client;
