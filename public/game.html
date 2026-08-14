@@ -22,7 +22,7 @@ button{font-weight:800;cursor:pointer}
 button:disabled{opacity:.38;cursor:default}
 
 .stage{position:absolute;inset:0}
-.felt-wrap{position:absolute;inset:6px 6px calc(128px + env(safe-area-inset-bottom))}
+.felt-wrap{position:absolute;inset:18px 22px calc(136px + env(safe-area-inset-bottom))}
 .rail{
   width:100%;height:100%;border-radius:50%;
   background:linear-gradient(180deg,#8a5a28,#5a3816 40%,#3d250e);
@@ -40,6 +40,7 @@ button:disabled{opacity:.38;cursor:default}
 }
 .board{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);display:flex;gap:4px;z-index:2}
 .seat{position:absolute;width:96px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;z-index:3}
+.seat.me{z-index:5}
 .seat.empty .avatar{background:#0b1220aa;border-color:#3a4a63;color:#4d5d78}
 .avatar{
   width:52px;height:52px;border-radius:50%;
@@ -65,6 +66,7 @@ button:disabled{opacity:.38;cursor:default}
 .plate{
   margin-top:-8px;background:#0b0f18ee;border:1px solid #d7b15a77;border-radius:8px;
   padding:3px 7px;min-width:86px;text-align:center;font-size:11px;
+  position:relative;z-index:6;
 }
 .plate b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
 .chips{color:#ffd24a;font-weight:700}
@@ -90,11 +92,12 @@ button:disabled{opacity:.38;cursor:default}
 .card .suit{font-size:18px;text-align:center;line-height:1}
 .red{color:#d21f1f}
 .back{background:repeating-linear-gradient(45deg,#1a3f86,#1a3f86 6px,#2450a6 6px,#2450a6 12px);border:2px solid #c9d8ff}
-.hero{position:absolute;left:50%;bottom:calc(132px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:3px;z-index:4}
+.hero{position:absolute;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:2px;z-index:2;pointer-events:none}
 .hero .card{width:50px;height:72px;font-size:14px}
 .hero .card .suit{font-size:22px}
-.mini{display:flex;gap:1px;margin-top:2px}
-.mini .card{width:16px;height:24px;font-size:8px;padding:1px;border-radius:3px}
+.mini{display:flex;gap:0;margin:0 0 2px;justify-content:center;max-width:92px}
+.mini .card{width:14px;height:20px;font-size:7px;padding:1px;border-radius:3px;margin-left:-5px}
+.mini .card:first-child{margin-left:0}
 .win-banner{
   position:absolute;inset:0;display:none;align-items:center;justify-content:center;
   z-index:20;pointer-events:none;text-align:center;
@@ -128,10 +131,16 @@ button:disabled{opacity:.38;cursor:default}
 .bust .row{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
 .bust button{min-width:120px}
 @media(max-width:700px){
-  .rail{padding:10px;border-radius:48%}.felt{border-radius:48%}
-  .avatar{width:44px;height:44px}.seat{width:78px}
-  .hero .card{width:38px;height:54px}
-  .card{width:34px;height:48px}
+  .felt-wrap{inset:28px 28px calc(138px + env(safe-area-inset-bottom))}
+  .rail{padding:8px;border-radius:48%}.felt{border-radius:48%}
+  .avatar{width:44px;height:44px}.seat{width:72px}
+  .hero{bottom:calc(122px + env(safe-area-inset-bottom))}
+  .hero .card{width:28px;height:40px;font-size:10px}
+  .hero .card .suit{font-size:14px}
+  .card{width:28px;height:40px;font-size:10px}
+  .plate{min-width:72px;font-size:10px;z-index:6}
+  .plate b{max-width:68px}
+  .mini .card{width:11px;height:16px;margin-left:-4px}
 }
 </style>
 </head>
@@ -252,9 +261,8 @@ function render(){
     const chip=p.streetBet?`<div class="betchip">${money(p.streetBet)}</div>`:'';
     const mini=(!mine && p.hand&&p.hand.length)? `<div class="mini">${p.hand.map(c=>cardHtml(c,!reveal||!c)).join('')}</div>`:'';
     html+=`<div class="seat s${i} ${mine?'me':''} ${p.winner?'win':''} ${p.folded?'fold':''}">
-      ${chip}${d}${b}${face}
+      ${chip}${d}${b}${mine?'':mini}${face}
       <div class="plate"><b>${p.name}</b><div class="chips">${money(p.credits)}</div></div>
-      ${mine?'':mini}
     </div>`;
   }
   $('seats').innerHTML=html;
