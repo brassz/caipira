@@ -342,9 +342,15 @@ async function createPixCharge(){
     showPixPay(r);
   } catch(e) { $('werr').textContent = e.message; }
 }
+function pixQrSrc(qr){
+  const s = String(qr||'').trim();
+  if(!s) return '';
+  if(/^https?:\/\//i.test(s) || s.startsWith('data:')) return s;
+  return 'data:image/png;base64,'+s.replace(/^data:image\/\w+;base64,/,'');
+}
 function showPixPay(r){
   if(pixPoll) clearInterval(pixPoll);
-  const qr = r.qr ? (String(r.qr).startsWith('data:') ? r.qr : 'data:image/png;base64,'+r.qr) : '';
+  const qr = pixQrSrc(r.qr);
   $('walletBox').innerHTML = `<h3>Pague o PIX</h3>
     ${qr?`<img alt="QR PIX" src="${qr}" style="width:220px;height:220px;display:block;margin:8px auto;background:#fff;border-radius:8px">`:''}
     <p class="muted">Copie o código e pague no app do banco. Esta tela atualiza sozinha.</p>
