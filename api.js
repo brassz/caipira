@@ -133,6 +133,19 @@ function mountApi(app) {
     res.json(withAdminFlag(asUser(data)));
   });
 
+  app.post('/api/profile', async (req, res) => {
+    const { username, avatar } = req.body || {};
+    const { data, error } = await db().rpc('api_update_profile', {
+      p_token: tokenOf(req), p_username: username, p_avatar: avatar
+    });
+    if (error) return res.status(400).json({ error: rpcErr(error) });
+    res.json(withAdminFlag(asUser(data)));
+  });
+
+  app.get('/api/lobby', (_req, res) => {
+    res.json(getLiveTables());
+  });
+
   app.post('/api/logout', async (req, res) => {
     await db().rpc('api_logout', { p_token: tokenOf(req) });
     res.json({ ok: true });
@@ -304,11 +317,15 @@ function mountApi(app) {
   });
 
   app.get('/api/history', async (req, res) => {
-    const t = tokenOf(req);
-    const d = await db().rpc('api_my_deposits', { p_token: t });
-    const w = await db().rpc('api_my_withdrawals', { p_token: t });
-    if (d.error) return res.status(401).json({ error: rpcErr(d.error) });
-    res.json({ deposits: d.data || [], withdrawals: w.data || [] });
+    try {
+      const t = tokenOf(req);
+      const d = await db().rpc('api_my_deposits', { p_token: t });
+      const w = await db().rpc('api_my_withdrawals', { p_token: t });
+      if (d.error) return res.status(401).json({ error: rpcErr(d.error) });
+      res.json({ deposits: d.data || [], withdrawals: w.data || [] });
+    } catch (e) {
+      res.status(500).json({ error: e.message || 'Erro no histórico' });
+    }
   });
 
   app.get('/api/admin/users', async (req, res) => {

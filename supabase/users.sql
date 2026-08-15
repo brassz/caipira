@@ -10,6 +10,7 @@ create table if not exists public.users (
   password_hash text not null,
   balance numeric(12,2) not null default 0,
   role text not null default 'user' check (role in ('user','admin')),
+  avatar text not null default '01',
   created_at timestamptz not null default now()
 );
 
@@ -93,7 +94,7 @@ begin
   insert into public.users (email, username, password_hash)
   values (lower(trim(p_email)), trim(p_username), crypt(p_password, gen_salt('bf'::text)))
   returning * into u;
-  return jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role);
+  return jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role, 'avatar', coalesce(u.avatar,'01'));
 exception when unique_violation then
   raise exception 'Este e-mail já está cadastrado';
 end;
@@ -121,7 +122,7 @@ begin
   values (t, u.id, now() + interval '30 days');
   return jsonb_build_object(
     'token', t,
-    'user', jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role)
+    'user', jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role, 'avatar', coalesce(u.avatar,'01'))
   );
 end;
 $$;
@@ -140,7 +141,30 @@ begin
     update public.users set role = 'admin' where id = u.id;
     u.role := 'admin';
   end if;
-  return jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role);
+  return jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role, 'avatar', coalesce(u.avatar,'01'));
+end;
+$$;
+
+create or replace function public.api_update_profile(p_token text, p_username text, p_avatar text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare u public.users%rowtype;
+  av text;
+begin
+  select * into u from public.users where id = public.uid_from_token(p_token);
+  if not found then raise exception 'Sessão inválida'; end if;
+  av := coalesce(nullif(trim(p_avatar), ''), u.avatar, '01');
+  if av !~ '^[0-9]{2}$' then av := '01'; end if;
+  if p_username is not null and length(trim(p_username)) >= 2 then
+    update public.users set username = trim(p_username), avatar = av where id = u.id;
+  else
+    update public.users set avatar = av where id = u.id;
+  end if;
+  select * into u from public.users where id = u.id;
+  return jsonb_build_object('id', u.id, 'email', u.email, 'username', u.username, 'balance', u.balance, 'role', u.role, 'avatar', coalesce(u.avatar,'01'));
 end;
 $$;
 
@@ -458,6 +482,7 @@ $$;
 grant execute on function public.api_register(text,text,text) to anon, authenticated;
 grant execute on function public.api_login(text,text) to anon, authenticated;
 grant execute on function public.api_me(text) to anon, authenticated;
+grant execute on function public.api_update_profile(text,text,text) to anon, authenticated;
 grant execute on function public.api_logout(text) to anon, authenticated;
 grant execute on function public.api_buy_in(text,text) to anon, authenticated;
 grant execute on function public.api_cash_out(text,numeric) to anon, authenticated;

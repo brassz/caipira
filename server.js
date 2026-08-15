@@ -26,7 +26,13 @@ mountApi(app);
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
   maxAge: '7d', immutable: true, etag: true
 }));
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h', etag: true }));
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: true,
+  setHeaders(res, filePath) {
+    if (/\.html$/i.test(filePath)) res.setHeader('Cache-Control', 'no-store');
+    else res.setHeader('Cache-Control', 'public, max-age=3600');
+  }
+}));
 const TURN_MS = 18000;
 const TABLES = {
   iniciante: { sb: 25, bb: 50, buy: 10 },
@@ -188,6 +194,7 @@ function broadcastState(room) {
       players: list(room).map(x => ({
         id: x.id,
         name: x.name,
+        avatar: x.avatar || '01',
         credits: x.credits,
         hand: x.id === p.id || reveal ? x.hand : (x.hand || []).map(() => null),
         winner: !!x.winner,
@@ -541,6 +548,7 @@ wss.on('connection', ws => {
         userId: me.id,
         token: m.token,
         name: me.username || 'Jogador',
+        avatar: me.avatar || '01',
         credits: Math.round(Number(buyin) * 100),
         hand: [],
         winner: false,
@@ -618,4 +626,6 @@ app.get('/api/admin/tables', async (req, res) => {
   }
 });
 
+process.on('uncaughtException', (e) => console.error('erro', e.message || e));
+process.on('unhandledRejection', (e) => console.error('erro', e && e.message || e));
 server.listen(PORT, '0.0.0.0', () => console.log(`Poker da Galera em http://localhost:${PORT}`));

@@ -7,9 +7,61 @@
 <script src="/config.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-html,body{margin:0;min-height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff}
+html,body{margin:0;min-height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#07111f;color:#fff}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
-.wrap{max-width:430px;margin:auto;padding:12px 12px 24px}
+.wrap{max-width:430px;margin:auto;padding:0 0 72px;min-height:100vh;background:
+  radial-gradient(120% 60% at 50% -10%, #163a6e 0%, transparent 55%),
+  linear-gradient(180deg,#0a1628 0%,#07111f 40%,#050b14 100%)}
+.auth-page{max-width:none;padding:0;min-height:100vh;background:#05070c}
+.xp-top{display:flex;align-items:center;gap:10px;padding:10px 12px 8px}
+.xp-me{display:flex;align-items:center;gap:8px;min-width:0;flex:1;background:#0c1a30cc;border:1px solid #2a4a78;border-radius:999px;padding:4px 10px 4px 4px}
+.xp-me img{width:40px;height:40px;min-width:40px;min-height:40px;aspect-ratio:1/1;object-fit:cover;border-radius:50%;border:2px solid #f0c33a;background:#123;display:block;flex:none}
+.xp-me .nm{font-weight:800;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8f0ff}
+.xp-me .nm small{display:block;color:#8fb0d8;font-weight:600;font-size:10px}
+.xp-chip{display:flex;align-items:center;gap:6px;background:linear-gradient(180deg,#1a2c4a,#101c30);border:1px solid #c9a35a66;border-radius:999px;padding:8px 10px;font-weight:800;color:#ffe08a;font-size:13px}
+.xp-plus{width:40px;height:40px;border-radius:50%;min-height:40px;padding:0;font-size:22px;line-height:1}
+.xp-tabs{display:flex;gap:8px;padding:0 12px 10px}
+.xp-tabs button{flex:1;min-height:38px;padding:8px;border-radius:999px;font-size:12px;letter-spacing:.6px;background:#122038;color:#9db8d8;box-shadow:none;border:1px solid #243a5c}
+.xp-tabs button.on{background:linear-gradient(180deg,#2a6adf,#1a4ab8);color:#fff;border-color:#6aa0ff}
+.xp-sec{padding:0 12px 8px;display:flex;justify-content:space-between;align-items:baseline}
+.xp-sec h2{margin:0;font-size:13px;letter-spacing:1.4px;color:#f3d27a}
+.xp-sec span{font-size:11px;color:#8fb0d8}
+.room{display:grid;grid-template-columns:92px 1fr auto;gap:10px;align-items:center;
+  margin:0 12px 10px;padding:10px;border-radius:16px;
+  background:linear-gradient(180deg,#12243c,#0c182c);border:1px solid #2a4a72;
+  box-shadow:0 8px 18px #0006}
+.oval{
+  width:92px;height:64px;border-radius:16px;overflow:hidden;position:relative;background:#0c182c;
+  border:2px solid #f0c33a;
+  box-shadow:0 0 8px #f0c33aaa, 0 0 18px #f0c33a55, inset 0 0 8px #f0c33a33;
+}
+.oval img{width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.oval .live{position:absolute;left:6px;top:6px;background:#1fa65a;color:#fff;font-size:9px;font-weight:800;border-radius:6px;padding:1px 5px}
+.room h3{margin:0;font-size:16px;color:#f6e7b8}
+.room .meta{color:#8fb0d8;font-size:12px;margin-top:2px}
+.seats{display:flex;gap:4px;margin-top:6px}
+.seats i{width:8px;height:8px;border-radius:50%;background:#2a3f5c;display:block}
+.seats i.on{background:#3dff7a}
+.rjoin{text-align:right}
+.rjoin .buy{color:#7dffae;font-weight:800;font-size:14px}
+.rjoin .buy span{display:block;color:#8fb0d8;font-size:9px;font-weight:700}
+.rjoin button{min-height:36px;margin-top:6px;padding:8px 14px;font-size:12px;border-radius:10px;background:linear-gradient(180deg,#2bd36a,#149a44);color:#fff;box-shadow:0 2px 0 #0b5c28}
+.nav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:430px;
+  display:grid;grid-template-columns:1fr 1fr 1fr;background:#081422ee;border-top:1px solid #1e3558;
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom));z-index:15;backdrop-filter:blur(10px)}
+.nav button{min-height:48px;background:transparent;color:#8fb0d8;box-shadow:none;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px}
+.nav button b{font-size:18px;line-height:1}
+.nav button.on{color:#f3d27a}
+.avgrid{display:grid;grid-template-columns:repeat(4,64px);gap:12px;margin:10px 0;justify-content:center}
+.avgrid button{
+  width:64px;height:64px;min-width:64px;min-height:64px;padding:0;
+  background:transparent;box-shadow:none;border:2px solid transparent;border-radius:50%;
+  overflow:hidden;line-height:0;
+}
+.avgrid button img{width:100%;height:100%;border-radius:50%;display:block;object-fit:cover;aspect-ratio:1/1}
+.avgrid button.on{border-color:#f0c33a}
+.prof-hero{text-align:center;padding:8px 0 4px}
+.prof-hero img{width:96px;height:96px;aspect-ratio:1/1;object-fit:cover;border-radius:50%;border:3px solid #f0c33a;display:inline-block}
 .auth-page{max-width:none;padding:0;min-height:100vh}
 .auth-screen{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -70,6 +122,32 @@ input:focus{outline:1px solid #c9a35a88}
 .pix{background:#0b1220;border-radius:10px;padding:10px;margin:8px 0;word-break:break-all}
 .muted{color:#9db0c8;font-size:13px}
 .err{color:#ff8b8b;font-size:13px;min-height:18px}
+.page{padding:0 12px 12px}
+.ph{display:flex;align-items:center;gap:8px;padding:8px 0 12px}
+.ph h1{margin:0;font-size:18px;color:#f6e7b8;flex:1}
+.back{min-height:40px;width:40px;padding:0;border-radius:50%;background:#122038;color:#fff;box-shadow:none;border:1px solid #2a4a72}
+.bal-card{background:linear-gradient(180deg,#1a3a6a,#102444);border:1px solid #c9a35a55;border-radius:18px;padding:18px;text-align:center;margin-bottom:14px;box-shadow:0 10px 24px #0005}
+.bal-card .lbl{color:#8fb0d8;font-size:12px;letter-spacing:1px}
+.bal-card .val{font-size:28px;font-weight:900;color:#ffe08a;margin:6px 0}
+.act2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.act2 button{min-height:56px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+.quick button{min-height:40px;padding:8px 12px;font-size:13px;background:#122038;color:#d7e6ff;box-shadow:none;border:1px solid #2a4a72}
+.quick button.on{background:linear-gradient(180deg,#2a6adf,#1a4ab8);border-color:#6aa0ff;color:#fff}
+.hist-item{display:flex;justify-content:space-between;background:#0c182c;border:1px solid #1e3558;border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13px}
+.hist-item b{color:#7dffae}
+.hist-item.out b{color:#ffb36a}
+.rowset{background:#0c182c;border:1px solid #1e3558;border-radius:16px;overflow:hidden;margin:10px 0}
+.rowset .item{display:flex;align-items:center;justify-content:space-between;padding:14px 14px;border-bottom:1px solid #1e3558;font-size:14px}
+.rowset .item:last-child{border-bottom:0}
+.sw{width:46px;height:28px;border-radius:16px;background:#2a3f5c;position:relative;border:0;min-height:28px;padding:0;box-shadow:none}
+.sw.on{background:#1fa65a}
+.sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on i{left:21px}
+.menu{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.menu button{width:100%;text-align:left;background:#122038;color:#e8f0ff;box-shadow:none;border:1px solid #2a4a72;display:flex;justify-content:space-between;align-items:center}
+.qrbox{background:#fff;border-radius:16px;padding:12px;width:240px;margin:12px auto}
+.qrbox img{width:100%;display:block}
 </style>
 </head>
 <body>
@@ -85,8 +163,38 @@ const TABLES = [
 function tableThumb(t){
   return `<img src="/assets/tables/${t.id}.png" alt="${t.name}">`;
 }
+const AVATARS = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+function avatarSrc(id){
+  const n = String(id||'01').replace(/\D/g,'').padStart(2,'0');
+  return '/assets/avatars/'+(AVATARS.includes(n)?n:'01')+'.png';
+}
 const brl = n => 'R$ ' + Number(n||0).toFixed(2).replace('.',',');
-let token=localStorage.getItem('pdg_token')||'', profile=null, rulesRead=false, rulesAccepted=false, authMode='login';
+function statusPt(s){
+  const m = { pending:'Pendente', approved:'Aprovado', paid:'Aprovado', rejected:'Cancelado', cancelled:'Cancelado', canceled:'Cancelado' };
+  return m[String(s||'').toLowerCase()] || 'Pendente';
+}
+let token=localStorage.getItem('pdg_token')||'', profile=null, rulesRead=false, rulesAccepted=false, authMode='login', liveSeats={}, lobbyTimer=null, screen='lobby', pickAmt=0;
+let settings = (function(){
+  try { return Object.assign({sound:true, notify:true, vibrate:true}, JSON.parse(localStorage.getItem('pdg_settings')||'{}')); }
+  catch(_){ return {sound:true, notify:true, vibrate:true}; }
+})();
+function persistSettings(){ localStorage.setItem('pdg_settings', JSON.stringify(settings)); }
+function beep(){
+  if(!settings.sound) return;
+  try {
+    const c = new (window.AudioContext||window.webkitAudioContext)();
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type='sine'; o.frequency.value=880; o.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(0.06, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime+0.09);
+    o.start(); o.stop(c.currentTime+0.09);
+  } catch(_){}
+}
+function buzz(){ if(settings.vibrate && navigator.vibrate) navigator.vibrate(18); }
+function ping(title, body){
+  if(!settings.notify || !('Notification' in window) || Notification.permission!=='granted') return;
+  try { new Notification(title, { body: body||'', icon:'/assets/logo.png' }); } catch(_){}
+}
 async function api(path, body, method){
   const opt={ method: method|| (body?'POST':'GET'), headers:{ 'Content-Type':'application/json' } };
   if(token) opt.headers.Authorization='Bearer '+token;
@@ -255,95 +363,231 @@ async function signup(){
 }
 function $(id){ return document.getElementById(id); }
 
+function navHtml(active){
+  const admin = profile && profile.role==='admin' ? `<a href="/admin.html" style="position:absolute;right:8px;top:8px;z-index:16"><button class="sec" style="min-height:32px;padding:6px 10px;font-size:11px">Admin</button></a>` : '';
+  return `${admin}<div class="nav">
+    <button class="${active==='lobby'?'on':''}" onclick="go('lobby')"><b>♠</b>Mesas</button>
+    <button class="${active==='wallet'?'on':''}" onclick="go('wallet')"><b>♦</b>Carteira</button>
+    <button class="${active==='profile'?'on':''}" onclick="go('profile')"><b>♥</b>Eu</button>
+  </div>
+  <div class="modal" id="rulesModal"><div class="box rules">
+    <h3 style="margin:0 0 8px;color:#ffd24a">Regras da plataforma</h3>
+    <div class="rules-body">${rulesHtml()}</div>
+    <div style="margin-top:12px"><button class="sec" onclick="document.getElementById('rulesModal').classList.remove('show')">Fechar</button></div>
+  </div></div>`;
+}
+function topBar(){
+  const av = avatarSrc(profile && profile.avatar);
+  return `<div class="xp-top">
+    <button class="xp-me" onclick="go('profile')" style="background:#0c1a30cc">
+      <img src="${av}" alt="">
+      <div class="nm">${esc(profile&&profile.username||'Jogador')}<small>Meu perfil</small></div>
+    </button>
+    <div class="xp-chip">♣ <b id="saldoVal">${brl(profile&&profile.balance)}</b></div>
+    <button class="xp-plus" onclick="go('deposit')">+</button>
+  </div>`;
+}
+function go(name){
+  beep(); buzz();
+  screen = name;
+  if(name==='lobby') renderLobby();
+  else if(name==='wallet') renderWallet();
+  else if(name==='deposit') renderDeposit();
+  else if(name==='withdraw') renderWithdraw();
+  else if(name==='profile') renderProfile();
+  else if(name==='settings') renderSettings();
+}
 function renderLobby(){
-  const admin = profile && profile.role==='admin' ? `<a href="/admin.html"><button class="sec">Admin</button></a>` : '';
+  screen='lobby';
   const app = document.getElementById('app');
   app.className = 'wrap';
-  app.innerHTML = `
-    <div class="top">
-      <div class="brand-row">
-        <img class="brand-logo" src="/assets/logo.png" alt="">
-        <div class="brand">POKER DA GALERA<small>OMAHA 5 · MESAS AO VIVO</small></div>
-      </div>
-      <div class="saldo">Saldo <b>${brl(profile&&profile.balance)}</b></div>
-      <button onclick="openWallet()">Carteira</button>
-      ${admin}
-      <button class="sec" onclick="logout()">Sair</button>
+  app.innerHTML = `${topBar()}
+    <div class="xp-tabs">
+      <button class="on">CASH GAME</button>
     </div>
-    <p class="muted">Escolha a mesa. O buy-in sai do saldo. <a href="#" onclick="openRulesLobby();return false;" style="color:#f3d27a">Regras</a></p>
-    <div class="grid">${TABLES.map(t=>`
-      <div class="tcard">
-        <div class="tthumb">${tableThumb(t)}</div>
-        <div>
-          <h3>${t.name}</h3>
-          <div class="tmeta">Blinds ${t.blinds} · 6 jogadores</div>
-        </div>
-        <div>
-          <div class="tbuy">${brl(t.buy)}<span>BUY-IN</span></div>
-          <button style="margin-top:6px;width:100%" onclick="sit('${t.id}',${t.buy})">Sentar</button>
-        </div>
-      </div>`).join('')}</div>
-    <div class="modal" id="wallet"><div class="box" id="walletBox"></div></div>
-    <div class="modal" id="rulesModal"><div class="box rules">
-      <h3 style="margin:0 0 8px;color:#ffd24a">Regras da plataforma</h3>
-      <div class="rules-body">${rulesHtml()}</div>
-      <div style="margin-top:12px"><button class="sec" onclick="document.getElementById('rulesModal').classList.remove('show')">Fechar</button></div>
-    </div></div>`;
+    <div class="xp-sec"><h2>SALAS AO VIVO</h2><span>6 max · PLO5</span></div>
+    <div id="rooms">${roomCards()}</div>
+    ${navHtml('lobby')}`;
   if(new URLSearchParams(location.search).get('add')==='1'){
-    setTimeout(()=>{ openWallet(); walletView('add'); }, 50);
+    history.replaceState({},'', '/');
+    setTimeout(()=>go('deposit'), 40);
   }
+  loadLiveSeats();
+  if(lobbyTimer) clearInterval(lobbyTimer);
+  lobbyTimer=setInterval(()=>{ if(screen==='lobby') loadLiveSeats(); }, 5000);
 }
-function openRulesLobby(){ document.getElementById('rulesModal').classList.add('show'); }
-
-function sit(id, buy){
-  if(!profile || Number(profile.balance) < buy){ alert('Saldo insuficiente. Use a carteira para adicionar.'); return; }
-  location.href = '/game.html?table='+id;
+function esc(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function roomCards(){
+  return TABLES.map(t=>{
+    const n = Number((liveSeats[t.id]&&liveSeats[t.id].players)||0);
+    const dots = Array.from({length:6},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('');
+    return `<div class="room">
+      <div class="oval">${n>0?'<span class="live">LIVE</span>':''}${tableThumb(t)}</div>
+      <div>
+        <h3>${t.name}</h3>
+        <div class="meta">Blinds ${t.blinds}</div>
+        <div class="seats">${dots}</div>
+      </div>
+      <div class="rjoin">
+        <div class="buy">${brl(t.buy)}<span>BUY-IN</span></div>
+        <button onclick="sit('${t.id}',${t.buy})">ENTRAR</button>
+      </div>
+    </div>`;
+  }).join('');
 }
-
-function openWallet(){
-  $('wallet').classList.add('show');
-  walletView('home');
-  $('wallet').onclick = e => { if(e.target.id==='wallet') $('wallet').classList.remove('show'); };
+async function loadLiveSeats(){
+  try {
+    const rows = await api('/api/lobby');
+    const list = Array.isArray(rows)?rows:[];
+    liveSeats = {};
+    list.forEach(r=>{ liveSeats[r.id]=r; });
+    const el=$('rooms');
+    if(el) el.innerHTML=roomCards();
+  } catch(_){}
 }
-function walletView(mode){
-  if(mode==='home'){
-    $('walletBox').innerHTML = `<h3>Carteira</h3><p>Saldo ${brl(profile.balance)}</p>
-      <button class="ok" onclick="walletView('add')">Adicionar</button>
-      <button class="sec" onclick="walletView('out')">Sacar</button>
-      <button class="sec" onclick="$('wallet').classList.remove('show')">Fechar</button>
-      <div id="hist"></div>`;
-    loadHist();
-  }
-  if(mode==='add'){
-    $('walletBox').innerHTML = `<h3>Adicionar saldo</h3>
-      <p class="muted">PIX instantâneo. Depósito mínimo R$ 10,00. O saldo entra automaticamente após o pagamento.</p>
-      <input id="depAmt" type="number" min="10" step="0.01" placeholder="Valor (R$)">
+function renderWallet(){
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="ph"><h1>Carteira</h1></div>
+      <div class="bal-card">
+        <div class="lbl">SALDO DISPONÍVEL</div>
+        <div class="val">${brl(profile&&profile.balance)}</div>
+      </div>
+      <div class="act2">
+        <button class="ok" onclick="go('deposit')">Depósito</button>
+        <button class="sec" onclick="go('withdraw')">Saque</button>
+      </div>
+      <p class="muted">Histórico</p>
+      <div id="hist"></div>
+    </div>
+    ${navHtml('wallet')}`;
+  loadHist();
+}
+function renderDeposit(){
+  pickAmt = pickAmt || 10;
+  const presets = [10,25,50,100,200];
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="ph"><button class="back" onclick="go('wallet')">‹</button><h1>Depósito PIX</h1></div>
+      <div class="bal-card">
+        <div class="lbl">DEPÓSITO MÍNIMO R$ 10,00</div>
+        <div class="val" id="depShow">${brl(pickAmt)}</div>
+      </div>
+      <div class="quick">${presets.map(v=>`<button class="${v===pickAmt?'on':''}" onclick="setDep(${v})">${brl(v)}</button>`).join('')}</div>
+      <input id="depAmt" type="number" min="10" step="0.01" value="${pickAmt}" placeholder="Outro valor (R$)" oninput="pickAmt=Number(this.value)||0; const s=$('depShow'); if(s) s.textContent=brl(pickAmt)">
       <input id="depCpf" placeholder="CPF" inputmode="numeric">
       <div class="err" id="werr"></div>
-      <button class="ok" onclick="createPixCharge()">Gerar PIX</button>
-      <button class="sec" onclick="walletView('home')">Voltar</button>`;
-  }
-  if(mode==='out'){
-    $('walletBox').innerHTML = `<h3>Saque</h3>
-      <p class="muted">PIX enviado na hora pela CajuPay. Informe a chave e o CPF do titular.</p>
-      <p class="err" style="min-height:auto;margin:0 0 8px">Saque mínimo R$ 15,00</p>
+      <button class="ok" style="width:100%" onclick="createPixCharge()">Gerar PIX</button>
+    </div>
+    ${navHtml('wallet')}`;
+}
+function setDep(v){ pickAmt=v; renderDeposit(); }
+function renderWithdraw(){
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="ph"><button class="back" onclick="go('wallet')">‹</button><h1>Saque PIX</h1></div>
+      <div class="bal-card">
+        <div class="lbl">SALDO</div>
+        <div class="val">${brl(profile&&profile.balance)}</div>
+      </div>
+      <p class="err" style="min-height:auto">Saque mínimo R$ 15,00</p>
       <input id="pixOut" placeholder="Sua chave PIX">
       <input id="outCpf" placeholder="CPF do titular da chave" inputmode="numeric">
       <input id="outAmt" type="number" min="15" step="0.01" placeholder="Valor (R$)">
       <div class="err" id="werr"></div>
-      <button class="ok" onclick="sendWithdraw()">Sacar via PIX</button>
-      <button class="sec" onclick="walletView('home')">Voltar</button>`;
-  }
+      <button class="ok" style="width:100%" onclick="sendWithdraw()">Sacar via PIX</button>
+    </div>
+    ${navHtml('wallet')}`;
+}
+function renderProfile(){
+  const cur = String(profile&&profile.avatar||'01').padStart(2,'0');
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="prof-hero">
+        <img src="${avatarSrc(cur)}" alt="">
+        <h3 style="margin:8px 0 0;color:#f3d27a">${esc(profile&&profile.username||'Jogador')}</h3>
+        <p class="muted" style="margin:4px 0">${esc(profile&&profile.email||'')}</p>
+      </div>
+      <input id="profName" maxlength="18" value="${esc(profile&&profile.username||'')}" placeholder="Apelido">
+      <p class="muted">Escolha um avatar</p>
+      <div class="avgrid">${AVATARS.map(id=>`<button type="button" class="${id===cur?'on':''}" onclick="pickAvatar('${id}')"><img src="${avatarSrc(id)}" alt=""></button>`).join('')}</div>
+      <div class="err" id="perr"></div>
+      <button class="ok" style="width:100%" onclick="saveProfile()">Salvar perfil</button>
+      <div class="menu">
+        <button onclick="go('settings')">Configurações <span>›</span></button>
+        <button onclick="openRulesLobby()">Regras <span>›</span></button>
+      </div>
+      <button class="danger" style="width:100%;margin-top:12px" onclick="logout()">Sair da conta</button>
+    </div>
+    ${navHtml('profile')}`;
+}
+function pickAvatar(id){
+  if(profile) profile.avatar = id;
+  renderProfile();
+}
+async function saveProfile(){
+  try {
+    const username = ($('profName').value||'').trim();
+    profile = await api('/api/profile', { username, avatar: profile.avatar||'01' });
+    ping('Perfil', 'Avatar e apelido salvos');
+    go('lobby');
+  } catch(e){ const el=$('perr'); if(el) el.textContent=e.message; }
+}
+function renderSettings(){
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="ph"><button class="back" onclick="go('profile')">‹</button><h1>Configurações</h1></div>
+      <div class="rowset">
+        <div class="item">Sons<button class="sw ${settings.sound?'on':''}" onclick="toggleSet('sound')"><i></i></button></div>
+        <div class="item">Notificações<button class="sw ${settings.notify?'on':''}" onclick="toggleSet('notify')"><i></i></button></div>
+        <div class="item">Vibração<button class="sw ${settings.vibrate?'on':''}" onclick="toggleSet('vibrate')"><i></i></button></div>
+      </div>
+      <p class="muted">Sons e vibração valem no lobby e na mesa. Notificações pedem permissão do navegador.</p>
+    </div>
+    ${navHtml('profile')}`;
+}
+async function toggleSet(key){
+  if(key==='notify' && !settings.notify && 'Notification' in window){
+    const p = await Notification.requestPermission();
+    settings.notify = p==='granted';
+  } else settings[key] = !settings[key];
+  persistSettings();
+  beep(); buzz();
+  renderSettings();
+}
+function openRulesLobby(){ const el=document.getElementById('rulesModal'); if(el) el.classList.add('show'); }
+
+function sit(id, buy){
+  if(!profile || Number(profile.balance) < buy){ go('deposit'); return; }
+  beep();
+  location.href = '/game.html?table='+id;
+}
+
+function openWallet(){ go('wallet'); }
+function walletView(mode){
+  if(mode==='add') go('deposit');
+  else if(mode==='out') go('withdraw');
+  else go('wallet');
 }
 let pixPoll = null;
 async function createPixCharge(){
-  const amount = Number($('depAmt').value);
-  const document = ($('depCpf').value || '').replace(/\D/g,'');
-  $('werr').textContent = '';
+  const amount = Number(($('depAmt')&&$('depAmt').value) || pickAmt);
+  const document = ($('depCpf') && $('depCpf').value || '').replace(/\D/g,'');
+  const errEl = $('werr'); if(errEl) errEl.textContent = '';
   try {
     const r = await api('/api/pix', { amount, document });
     showPixPay(r);
-  } catch(e) { $('werr').textContent = e.message; }
+  } catch(e) { if($('werr')) $('werr').textContent = e.message; }
 }
 function pixQrSrc(qr){
   const s = String(qr||'').trim();
@@ -354,14 +598,19 @@ function pixQrSrc(qr){
 function showPixPay(r){
   if(pixPoll) clearInterval(pixPoll);
   const qr = pixQrSrc(r.qr);
-  $('walletBox').innerHTML = `<h3>Pague o PIX</h3>
-    ${qr?`<img alt="QR PIX" src="${qr}" style="width:220px;height:220px;display:block;margin:8px auto;background:#fff;border-radius:8px">`:''}
-    <p class="muted">Copie o código e pague no app do banco. Esta tela atualiza sozinha.</p>
-    <div class="pix" id="pixCopy">${r.copyPaste||''}</div>
-    <button class="ok" onclick="navigator.clipboard.writeText($('pixCopy').textContent)">Copiar código</button>
-    <div class="err" id="werr"></div>
-    <p class="muted" id="pixSt">Aguardando pagamento…</p>
-    <button class="sec" onclick="stopPixPoll();walletView('home')">Voltar</button>`;
+  const app = document.getElementById('app');
+  app.className = 'wrap';
+  app.innerHTML = `${topBar()}
+    <div class="page">
+      <div class="ph"><button class="back" onclick="stopPixPoll();go('deposit')">‹</button><h1>Pague o PIX</h1></div>
+      ${qr?`<div class="qrbox"><img alt="QR PIX" src="${qr}"></div>`:''}
+      <p class="muted" style="text-align:center">Copie o código e pague no app do banco.</p>
+      <div class="pix" id="pixCopy">${r.copyPaste||''}</div>
+      <button class="ok" style="width:100%" onclick="navigator.clipboard.writeText($('pixCopy').textContent);beep()">Copiar código</button>
+      <div class="err" id="werr"></div>
+      <p class="muted" id="pixSt" style="text-align:center">Aguardando pagamento…</p>
+    </div>
+    ${navHtml('wallet')}`;
   pixPoll = setInterval(()=>checkPix(r.id), 2500);
 }
 function stopPixPoll(){ if(pixPoll){ clearInterval(pixPoll); pixPoll=null; } }
@@ -371,29 +620,40 @@ async function checkPix(id){
     if(s.status==='approved'){
       stopPixPoll();
       if(s.balance!=null) profile.balance = s.balance;
-      await refresh();
-      openWallet();
-      const box=$('walletBox');
-      if(box) box.innerHTML = `<h3>Pagamento confirmado</h3><p>Saldo ${brl(profile.balance)}</p>
-        <button class="ok" onclick="walletView('home')">Ok</button>`;
+      ping('Depósito confirmado', brl(profile.balance));
+      beep();
+      const app = document.getElementById('app');
+      app.className = 'wrap';
+      app.innerHTML = `${topBar()}
+        <div class="page">
+          <div class="bal-card"><div class="lbl">PAGAMENTO CONFIRMADO</div><div class="val">${brl(profile.balance)}</div></div>
+          <button class="ok" style="width:100%" onclick="go('lobby')">Ir às mesas</button>
+        </div>
+        ${navHtml('wallet')}`;
     }
   } catch(e) { const el=$('werr'); if(el) el.textContent=e.message; }
 }
 async function sendWithdraw(){
   const amount = Number($('outAmt').value);
-  const pixKey = $('pixOut').value.trim();
-  const cpf = ($('outCpf').value || '').replace(/\D/g,'');
-  const errEl = $('werr');
-  if(errEl) errEl.textContent = '';
+  const pixKey = ($('pixOut').value||'').trim();
+  let cpf = ($('outCpf') && $('outCpf').value || '').replace(/\D/g,'');
+  const keyDigits = pixKey.replace(/\D/g,'');
+  if(cpf.length!==11 && cpf.length!==14 && (keyDigits.length===11 || keyDigits.length===14)) cpf = keyDigits;
+  const errEl = $('werr'); if(errEl) errEl.textContent = '';
   try {
     const r = await api('/api/withdraw', { amount, pixKey, document: cpf });
     if(r.balance!=null) profile.balance = r.balance;
-    const saldo = document.querySelector('.saldo b');
-    if(saldo) saldo.textContent = brl(profile.balance);
-    $('walletBox').innerHTML = `<h3>Saque enviado</h3>
-      <p>O PIX de ${brl(amount)} foi disparado pela CajuPay.</p>
-      <p>Saldo ${brl(profile.balance)}</p>
-      <button class="ok" onclick="walletView('home')">Ok</button>`;
+    ping('Saque enviado', brl(amount));
+    beep();
+    const app = document.getElementById('app');
+    app.className = 'wrap';
+    app.innerHTML = `${topBar()}
+      <div class="page">
+        <div class="bal-card"><div class="lbl">SAQUE ENVIADO</div><div class="val">${brl(amount)}</div></div>
+        <p class="muted" style="text-align:center">PIX disparado pela CajuPay. Saldo ${brl(profile.balance)}</p>
+        <button class="ok" style="width:100%" onclick="go('wallet')">Ok</button>
+      </div>
+      ${navHtml('wallet')}`;
   } catch(e) {
     const el = $('werr');
     if(el) el.textContent = e.message;
@@ -402,12 +662,12 @@ async function sendWithdraw(){
 }
 async function loadHist(){
   try {
-    const box = $('walletBox');
     const h = await api('/api/history');
     const el = $('hist');
-    if(!el || $('walletBox')!==box) return;
-    el.innerHTML = `<p class="muted">Depósitos</p>${(h.deposits||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}
-      <p class="muted">Saques</p>${(h.withdrawals||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}`;
+    if(!el) return;
+    const deps = (h.deposits||[]).map(x=>`<div class="hist-item"><span>Depósito · ${statusPt(x.status)}</span><b>${brl(x.amount)}</b></div>`).join('');
+    const outs = (h.withdrawals||[]).map(x=>`<div class="hist-item out"><span>Saque · ${statusPt(x.status)}</span><b>${brl(x.amount)}</b></div>`).join('');
+    el.innerHTML = deps+outs || '<p class="muted">Nenhum movimento ainda.</p>';
   } catch(e) { const el=$('hist'); if(el) el.innerHTML=''; }
 }
 async function logout(){

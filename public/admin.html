@@ -48,6 +48,10 @@ a{color:#7eb6ff}
 <script>
 const token=localStorage.getItem('pdg_token')||'';
 const brl=n=>'R$ '+Number(n||0).toFixed(2).replace('.',',');
+function statusPt(s){
+  const m={ pending:'Pendente', approved:'Aprovado', paid:'Aprovado', rejected:'Cancelado', cancelled:'Cancelado', canceled:'Cancelado' };
+  return m[String(s||'').toLowerCase()]||'Pendente';
+}
 const asArr=d=>!d?[]:Array.isArray(d)?d:[d];
 const PAGE=5;
 let userPage=0, allUsers=[];
@@ -112,7 +116,7 @@ async function loadAll(){
     document.getElementById('deps').innerHTML=deps.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>Status</th></tr>
       ${deps.map(d=>`<tr>
         <td>${new Date(d.created_at).toLocaleString()}</td>
-        <td>${esc(d.email)}</td><td>${brl(d.amount)}</td><td>${esc(d.status)}</td>
+        <td>${esc(d.email)}</td><td>${brl(d.amount)}</td><td>${esc(statusPt(d.status))}</td>
       </tr>`).join('')}</table>`:'<p class="muted">Nenhum depósito registrado no app. Comprovantes vão pelo WhatsApp.</p>';
   } catch(e){ document.getElementById('deps').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
   try {
@@ -122,7 +126,7 @@ async function loadAll(){
           <td>${new Date(w.created_at).toLocaleString()}</td>
           <td>${esc(w.email)}</td><td>${brl(w.amount)}</td>
           <td>${esc(w.pix_key)}</td>
-          <td>${esc(w.status)}</td>
+          <td>${esc(statusPt(w.status))}</td>
           <td>${w.status==='pending'?`<button class="ok" onclick="payOut('${w.id}')">Pagar PIX</button>
             <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>`:''}</td>
         </tr>`).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';

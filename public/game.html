@@ -58,8 +58,9 @@ button:disabled{opacity:.38;cursor:default}
   width:52px;height:52px;border-radius:50%;
   background:linear-gradient(180deg,#3a6aa8,#1d3f6e);
   border:3px solid #d7b15a;display:flex;align-items:center;justify-content:center;
-  font-weight:800;font-size:16px;box-shadow:0 4px 10px #0009;
+  font-weight:800;font-size:16px;box-shadow:0 4px 10px #0009;overflow:hidden;
 }
+.avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 .seat.me .avatar{border-color:#fff;box-shadow:0 0 0 2px #f0c33a}
 .seat.win .avatar{border-color:#7dff9a;box-shadow:0 0 16px #3dff7a}
 .seat.fold{opacity:.42}
@@ -204,6 +205,19 @@ button:disabled{opacity:.38;cursor:default}
 </div>
 <script>
 let ws=null, myId=null, state=null, raiseTo=0, bustOpen=false, lastSnap='', wasMyTurn=false, bustWallet=null, rafClock=0, rafRender=0;
+let settings=(function(){ try{return Object.assign({sound:true,notify:true,vibrate:true},JSON.parse(localStorage.getItem('pdg_settings')||'{}'));}catch(_){return {sound:true,notify:true,vibrate:true};}})();
+function turnBeep(){
+  if(!settings.sound) return;
+  try{
+    const c=new (window.AudioContext||window.webkitAudioContext)();
+    const o=c.createOscillator(); const g=c.createGain();
+    o.frequency.value=740; o.connect(g); g.connect(c.destination);
+    g.gain.setValueAtTime(0.07,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.12);
+    o.start(); o.stop(c.currentTime+0.12);
+  }catch(_){}
+  if(settings.vibrate && navigator.vibrate) navigator.vibrate(30);
+}
 const $=id=>document.getElementById(id);
 const suits={S:'♠',H:'♥',D:'♦',C:'♣'};
 function money(c){ return (Number(c||0)/100).toFixed(2).replace('.',','); }
@@ -214,6 +228,11 @@ function cardHtml(c,hidden){
 }
 function send(type,payload={}){ if(ws&&ws.readyState===1) ws.send(JSON.stringify({type,...payload})); }
 function initials(n){ return (n||'?').trim().slice(0,2).toUpperCase(); }
+function avFace(p){
+  const id=String(p&&p.avatar||'').replace(/\D/g,'').padStart(2,'0');
+  if(id && Number(id)>=1 && Number(id)<=12) return `<img src="/assets/avatars/${id}.png" alt="">`;
+  return initials(p&&p.name);
+}
 function seatOrder(ps){
   const i=ps.findIndex(p=>p.id===myId);
   if(i<0) return ps;
@@ -285,8 +304,8 @@ function render(){
     const mine=p.id===myId;
     const acting=state.actorId===p.id && state.stage!=='showdown' && state.stage!=='idle';
     const face=acting
-      ? `<div class="clock green" data-clock="1"><div class="avatar">${initials(p.name)}</div><div class="clock-num">18</div></div>`
-      : `<div class="avatar">${initials(p.name)}</div>`;
+      ? `<div class="clock green" data-clock="1"><div class="avatar">${avFace(p)}</div><div class="clock-num">18</div></div>`
+      : `<div class="avatar">${avFace(p)}</div>`;
     const d=state.dealerId===p.id?'<div class="btnD">👑</div>':'';
     const b=state.sbId===p.id?'<div class="blind">SB</div>':state.bbId===p.id?'<div class="blind">BB</div>':'';
     const chip=p.streetBet?`<div class="betchip">${money(p.streetBet)}</div>`:'';
@@ -309,7 +328,7 @@ function render(){
   $('call').textContent=call>0?('CALL '+money(call)):'CHECK';
   $('betAmt').disabled=!myTurn;
   if(myTurn){
-    if(!wasMyTurn){ raiseTo=0; if(document.activeElement!==$('betAmt')) setRaise(minRaiseTo()); }
+    if(!wasMyTurn){ raiseTo=0; if(document.activeElement!==$('betAmt')) setRaise(minRaiseTo()); turnBeep(); }
   } else $('raise').textContent=state.currentBet?'RAISE':'BET';
   wasMyTurn=myTurn;
   const bnr=state.banner;
