@@ -23,7 +23,10 @@ app.use(express.json({
   verify: (req, _res, buf) => { req.rawBody = buf; }
 }));
 mountApi(app);
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), {
+  maxAge: '7d', immutable: true, etag: true
+}));
+app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h', etag: true }));
 const TURN_MS = 18000;
 const TABLES = {
   iniciante: { sb: 25, bb: 50, buy: 10 },

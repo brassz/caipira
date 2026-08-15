@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { WebSocket } = require('ws');
 const { createClient } = require('@supabase/supabase-js');
-const { createPix, listPayments, createPayout, verifyWebhook } = require('./cajupay');
+const { createPix, listPayments, getPayment, createPayout, verifyWebhook } = require('./cajupay');
 
 if (typeof globalThis.WebSocket === 'undefined') globalThis.WebSocket = WebSocket;
 
@@ -23,7 +23,7 @@ function db() {
   if (!url || !key) throw new Error('Configure SUPABASE_URL e SUPABASE_ANON_KEY no arquivo .env');
   if (!client) {
     client = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
       realtime: { transport: WebSocket }
     });
   }
@@ -206,10 +206,17 @@ function mountApi(app) {
       const pathRef = row.receipt_path || '';
       const pid = pathRef.replace(/^cajupay:/, '');
       if (pid) {
-        const list = await listPayments().catch(() => []);
-        const items = Array.isArray(list) ? list : (list.data || list.payments || []);
-        const found = items.find(p => String(p.payment_id || p.id) === String(pid));
-        if (found && String(found.status || '').toLowerCase() === 'paid') {
+        let found = null;
+        try {
+          const one = await getPayment(pid);
+          found = one.payment || one.data || one;
+        } catch (_) {
+          const list = await listPayments().catch(() => []);
+          const items = Array.isArray(list) ? list : (list.data || list.payments || []);
+          found = items.find(p => String(p.payment_id || p.id) === String(pid));
+        }
+        const st = String((found && (found.status || found.payment_status)) || '').toLowerCase();
+        if (st === 'paid' || st === 'completed' || st === 'confirmed') {
           await confirmPixPath(pathRef);
           const fresh = await userFromToken(tokenOf(req));
           return res.json({ status: 'approved', balance: fresh && fresh.balance });

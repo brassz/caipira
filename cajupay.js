@@ -69,6 +69,10 @@ function listPayments() {
   return caju('GET', '/api/payments?limit=50');
 }
 
+function getPayment(id) {
+  return caju('GET', '/api/payments/' + encodeURIComponent(id));
+}
+
 function createPayout({ amountCents, pixKey, ownerDocument }) {
   const type = pixKeyType(pixKey);
   const body = {
@@ -99,4 +103,4 @@ function verifyWebhook(rawBuf, sigHdr, secret) {
   return JSON.parse(rawBuf.toString('utf8'));
 }
 
-module.exports = { createPix, listPayments, createPayout, verifyWebhook, pixKeyType };
+module.exports = { createPix, listPayments, getPayment, createPayout, verifyWebhook, pixKeyType };

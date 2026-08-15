@@ -6,7 +6,7 @@
 <title>Poker da Galera</title>
 <script src="/config.js"></script>
 <style>
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff;overflow:hidden}
 .app{height:100%;position:relative;max-width:430px;margin:auto;width:100%}
 .lobby{
@@ -67,6 +67,7 @@ button:disabled{opacity:.38;cursor:default}
   position:relative;width:60px;height:60px;border-radius:50%;padding:3px;
   background:conic-gradient(var(--c,#3dff7a) calc(var(--p,100)*1%), #ffffff22 0);
   display:flex;align-items:center;justify-content:center;
+  will-change:background;
 }
 .clock .avatar{width:50px;height:50px;margin:0;border-width:2px}
 .clock-num{
@@ -202,7 +203,7 @@ button:disabled{opacity:.38;cursor:default}
   </div>
 </div>
 <script>
-let ws=null, myId=null, state=null, raiseTo=0, bustOpen=false;
+let ws=null, myId=null, state=null, raiseTo=0, bustOpen=false, lastSnap='', wasMyTurn=false, bustWallet=null, rafClock=0, rafRender=0;
 const $=id=>document.getElementById(id);
 const suits={S:'♠',H:'♥',D:'♦',C:'♣'};
 function money(c){ return (Number(c||0)/100).toFixed(2).replace('.',','); }
@@ -224,12 +225,19 @@ function updateClock(){
   if(!el||!state||!state.turnEndsAt) return;
   const total=state.turnMs||18000;
   const left=Math.max(0,state.turnEndsAt-Date.now());
-  el.className='clock '+clockColor(Math.ceil(left/1000));
+  const cls='clock '+clockColor(Math.ceil(left/1000));
+  if(el.className!==cls) el.className=cls;
   el.style.setProperty('--p', (left/total)*100);
   const n=el.querySelector('.clock-num');
-  if(n) n.textContent=Math.ceil(left/1000);
+  const t=String(Math.ceil(left/1000));
+  if(n && n.textContent!==t) n.textContent=t;
 }
-setInterval(updateClock,200);
+function loopClock(ts){
+  if(!rafClock) rafClock=ts;
+  if(ts-rafClock>=120){ rafClock=ts; updateClock(); }
+  requestAnimationFrame(loopClock);
+}
+requestAnimationFrame(loopClock);
 function me(){ return (state.players||[]).find(p=>p.id===myId); }
 function minRaiseTo(){
   const p=me(); if(!p) return 0;
@@ -251,15 +259,23 @@ function setRaise(v, fromInput){
   $('raise').textContent = (state.currentBet? 'RAISE ':'BET ') + money(raiseTo);
   if(!fromInput && document.activeElement!==$('betAmt')) $('betAmt').value=(raiseTo/100).toFixed(2);
 }
+function scheduleRender(){
+  if(rafRender) return;
+  rafRender=requestAnimationFrame(()=>{ rafRender=0; render(); });
+}
 function render(){
   if(!state) return;
+  const snap=JSON.stringify(state)+String(myId||'');
+  if(snap===lastSnap) return;
+  lastSnap=snap;
   try {
   $('gamePanel').style.display='block';
   $('leave').style.display='block';
   $('connectPanel').style.display='none';
   $('pot').textContent=money(state.pot||0);
   const board=state.board||[];
-  $('board').innerHTML=board.map(c=>cardHtml(c)).join('') + Array.from({length:Math.max(0,5-board.length)},()=>cardHtml(null,true)).join('');
+  const boardHtml=board.map(c=>cardHtml(c)).join('') + Array.from({length:Math.max(0,5-board.length)},()=>cardHtml(null,true)).join('');
+  if($('board').innerHTML!==boardHtml) $('board').innerHTML=boardHtml;
   const reveal=state.stage==='showdown';
   const ordered=seatOrder(state.players||[]);
   let html='';
@@ -280,9 +296,10 @@ function render(){
       <div class="plate"><b>${p.name}</b><div class="chips">${money(p.credits)}</div></div>
     </div>`;
   }
-  $('seats').innerHTML=html;
+  if($('seats').innerHTML!==html) $('seats').innerHTML=html;
   const p=me();
-  $('heroCards').innerHTML=(p&&p.hand||[]).map(c=>cardHtml(c,false)).join('');
+  const hero=(p&&p.hand||[]).map(c=>cardHtml(c,false)).join('');
+  if($('heroCards').innerHTML!==hero) $('heroCards').innerHTML=hero;
   const myTurn=!!myId && state.actorId===myId && state.stage!=='showdown' && state.stage!=='idle' && p && !p.folded;
   const call=state.toCall||0;
   $('fold').disabled=!myTurn;
@@ -292,14 +309,14 @@ function render(){
   $('call').textContent=call>0?('CALL '+money(call)):'CHECK';
   $('betAmt').disabled=!myTurn;
   if(myTurn){
-    raiseTo=0;
-    if(document.activeElement!==$('betAmt')) setRaise(minRaiseTo());
+    if(!wasMyTurn){ raiseTo=0; if(document.activeElement!==$('betAmt')) setRaise(minRaiseTo()); }
   } else $('raise').textContent=state.currentBet?'RAISE':'BET';
-  const b=state.banner;
+  wasMyTurn=myTurn;
+  const bnr=state.banner;
   const el=$('winBanner');
-  if(b&&b.names&&b.names.length){
-    $('winWho').textContent=b.names.join(' e ');
-    $('winAmt').textContent='+'+money(b.amount);
+  if(bnr&&bnr.names&&bnr.names.length){
+    $('winWho').textContent=bnr.names.join(' e ');
+    $('winAmt').textContent='+'+money(bnr.amount);
     el.classList.add('show');
   } else el.classList.remove('show');
   updateClock();
@@ -310,18 +327,21 @@ function brl(n){ return 'R$ '+Number(n||0).toFixed(2).replace('.',','); }
 function hideBust(){ bustOpen=false; const el=$('bustPanel'); if(el) el.classList.remove('show'); }
 async function maybeBust(){
   const p=me();
-  if(!p || p.credits>0){ hideBust(); return; }
+  if(!p || p.credits>0){ hideBust(); bustWallet=null; return; }
   if(p.inHand && state.stage!=='showdown' && state.stage!=='idle') return;
   if(bustOpen) return;
   bustOpen=true;
   const buy=Number(state.buyIn||0);
-  let wallet=0;
-  try{
-    const tok=localStorage.getItem('pdg_token')||'';
-    const r=await fetch('/api/me',{ headers:{ Authorization:'Bearer '+tok } });
-    const j=await r.json().catch(()=>({}));
-    wallet=Number(j.balance||0);
-  }catch(_){}
+  let wallet=bustWallet;
+  if(wallet==null){
+    try{
+      const tok=localStorage.getItem('pdg_token')||'';
+      const r=await fetch('/api/me',{ headers:{ Authorization:'Bearer '+tok } });
+      const j=await r.json().catch(()=>({}));
+      wallet=Number(j.balance||0);
+      bustWallet=wallet;
+    }catch(_){ wallet=0; }
+  }
   const panel=$('bustPanel');
   if(!panel) return;
   panel.classList.add('show');
@@ -376,7 +396,7 @@ $('leave').onclick=()=>{ if(ws) ws.close(); location.href='/'; };
     };
     art.dataset.try='png';
     art.src='/assets/table.png';
-    window.addEventListener('resize', fitTableArt);
+    window.addEventListener('resize', ()=>{ if(fitTableArt._t) cancelAnimationFrame(fitTableArt._t); fitTableArt._t=requestAnimationFrame(fitTableArt); });
   }
   const table=new URLSearchParams(location.search).get('table');
   const tok=localStorage.getItem('pdg_token');
@@ -386,8 +406,8 @@ $('leave').onclick=()=>{ if(ws) ws.close(); location.href='/'; };
   ws.onopen=()=>send('join',{ token:tok, table });
   ws.onmessage=e=>{
     const m=JSON.parse(e.data);
-    if(m.type==='joined'){ myId=m.id; if(state) render(); }
-    if(m.type==='state'){ state=m.state; render(); }
+    if(m.type==='joined'){ myId=m.id; if(state) scheduleRender(); }
+    if(m.type==='state'){ state=m.state; scheduleRender(); }
     if(m.type==='rebuy-ok'){ hideBust(); }
     if(m.type==='rebuy-fail'){
       if(m.needDeposit) goAddSaldo();

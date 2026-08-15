@@ -6,7 +6,7 @@
 <title>Poker da Galera</title>
 <script src="/config.js"></script>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 html,body{margin:0;min-height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff}
 body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .wrap{max-width:430px;margin:auto;padding:12px 12px 24px}
@@ -24,7 +24,8 @@ body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-i
 .saldo{background:#0e1420;border:1px solid #c9a35a44;border-radius:12px;padding:8px 12px;font-size:13px}
 .saldo b{color:#f3d27a}
 button,input{border:0;border-radius:12px;padding:14px 12px;font-size:16px}
-button{font-weight:800;cursor:pointer;background:linear-gradient(180deg,#f6d56a,#d4a42a);color:#1a1406;min-height:48px;box-shadow:0 2px 0 #8a6a12}
+button{font-weight:800;cursor:pointer;background:linear-gradient(180deg,#f6d56a,#d4a42a);color:#1a1406;min-height:48px;box-shadow:0 2px 0 #8a6a12;transition:transform .08s ease,opacity .08s}
+button:active{transform:scale(.97)}
 button.sec{background:#1a2436;color:#e8eef8;box-shadow:none;border:1px solid #2c3a58}
 button.ok{background:#1fa65a;color:#fff;box-shadow:none}
 button.danger{background:#c43333;color:#fff;box-shadow:none}
@@ -359,7 +360,7 @@ function showPixPay(r){
     <div class="err" id="werr"></div>
     <p class="muted" id="pixSt">Aguardando pagamento…</p>
     <button class="sec" onclick="stopPixPoll();walletView('home')">Voltar</button>`;
-  pixPoll = setInterval(()=>checkPix(r.id), 4000);
+  pixPoll = setInterval(()=>checkPix(r.id), 2500);
 }
 function stopPixPoll(){ if(pixPoll){ clearInterval(pixPoll); pixPoll=null; } }
 async function checkPix(id){
