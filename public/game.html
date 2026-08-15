@@ -5,20 +5,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Poker da Galera</title>
 <script src="/config.js"></script>
+<script src="/music.js"></script>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff;overflow:hidden}
+html,body{margin:0;height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#050505;color:#E8E5DE;overflow:hidden}
 .app{height:100%;position:relative;max-width:430px;margin:auto;width:100%}
 .lobby{
   position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
-  background:#070b14ee;
+  background:#050505ee;
 }
-.lobby .box{width:min(420px,92vw);background:#121a2c;border:1px solid #2c3a58;border-radius:16px;padding:18px}
-.lobby h2{margin:0 0 12px;color:#ffd24a;text-align:center}
+.lobby .box{width:min(420px,92vw);background:#0D0D0D;border:1px solid #594015;border-radius:16px;padding:18px}
+.lobby h2{margin:0 0 12px;color:#F2CD68;text-align:center}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 input,button{border:0;border-radius:10px;padding:12px;font-size:15px}
-input{flex:1;min-width:110px;background:#1b2438;color:#fff;outline:none}
-button{font-weight:800;cursor:pointer}
+input{flex:1;min-width:110px;background:#151515;color:#E8E5DE;outline:none;border:1px solid #594015}
+button{font-weight:800;cursor:pointer;background:linear-gradient(180deg,#F2CD68,#D6A83D);color:#1a1406}
 button:disabled{opacity:.38;cursor:default}
 
 .stage{position:absolute;inset:0}
@@ -47,21 +48,21 @@ button:disabled{opacity:.38;cursor:default}
 }
 .pot{
   position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);
-  min-width:86px;text-align:center;background:#0007;border:1px solid #e7c56a66;
-  border-radius:16px;padding:4px 12px;font-size:13px;color:#ffe08a;z-index:2;
+  min-width:86px;text-align:center;background:#0007;border:1px solid #594015;
+  border-radius:16px;padding:4px 12px;font-size:13px;color:#F2CD68;z-index:2;
 }
 .board{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);display:flex;gap:4px;z-index:2}
 .seat{position:absolute;width:96px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;z-index:3}
 .seat.me{z-index:5}
-.seat.empty .avatar{background:#0b1220aa;border-color:#3a4a63;color:#4d5d78}
+.seat.empty .avatar{background:#151515aa;border-color:#594015;color:#8A6422}
 .avatar{
   width:52px;height:52px;border-radius:50%;
-  background:linear-gradient(180deg,#3a6aa8,#1d3f6e);
-  border:3px solid #d7b15a;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#151515,#0D0D0D);
+  border:3px solid #D6A83D;display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:16px;box-shadow:0 4px 10px #0009;overflow:hidden;
 }
 .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
-.seat.me .avatar{border-color:#fff;box-shadow:0 0 0 2px #f0c33a}
+.seat.me .avatar{border-color:#F2CD68;box-shadow:0 0 0 2px #D6A83D}
 .seat.win .avatar{border-color:#7dff9a;box-shadow:0 0 16px #3dff7a}
 .seat.fold{opacity:.42}
 .clock{
@@ -76,16 +77,16 @@ button:disabled{opacity:.38;cursor:default}
   background:#0b0f18;border:2px solid var(--c,#3dff7a);color:#fff;
   font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;
 }
-.clock.green{--c:#3dff7a}.clock.orange{--c:#ff9f1a}.clock.red{--c:#ff3b3b}
+.clock.green{--c:#D6A83D}.clock.orange{--c:#F2CD68}.clock.red{--c:#D62828}
 .plate{
   margin-top:-8px;background:#0b0f18ee;border:1px solid #d7b15a77;border-radius:8px;
   padding:3px 7px;min-width:86px;text-align:center;font-size:11px;
   position:relative;z-index:6;
 }
 .plate b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
-.chips{color:#ffd24a;font-weight:700}
+.chips{color:#F2CD68;font-weight:700}
 .betchip{
-  position:absolute;top:-14px;background:#1a1208;border:1px solid #e7c56a;color:#ffe08a;
+  position:absolute;top:-14px;background:#0D0D0D;border:1px solid #D6A83D;color:#F2CD68;
   border-radius:10px;font-size:10px;padding:1px 6px;font-weight:800;
 }
 .btnD{
@@ -105,8 +106,8 @@ button:disabled{opacity:.38;cursor:default}
   box-shadow:0 3px 6px #0008;font-size:12px;flex:0 0 auto;
 }
 .card .suit{font-size:18px;text-align:center;line-height:1}
-.red{color:#d21f1f}
-.back{background:repeating-linear-gradient(45deg,#1a3f86,#1a3f86 6px,#2450a6 6px,#2450a6 12px);border:2px solid #c9d8ff}
+.red{color:#D62828}
+.back{background:repeating-linear-gradient(45deg,#8A6422,#8A6422 6px,#594015 6px,#594015 12px);border:2px solid #D6A83D}
 .hero{position:absolute;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:2px;z-index:2;pointer-events:none}
 .hero .card{width:50px;height:72px;font-size:14px}
 .hero .card .suit{font-size:22px}
@@ -119,30 +120,30 @@ button:disabled{opacity:.38;cursor:default}
 }
 .win-banner.show{display:flex}
 .win-banner .who{font-size:clamp(28px,7vw,56px);font-weight:900;text-transform:uppercase;text-shadow:0 4px 18px #000}
-.win-banner .amt{font-size:clamp(36px,8vw,72px);font-weight:900;color:#ffd24a;text-shadow:0 4px 18px #000}
+.win-banner .amt{font-size:clamp(36px,8vw,72px);font-weight:900;color:#F2CD68;text-shadow:0 4px 18px #000}
 .bottom{
   position:absolute;left:0;right:0;bottom:0;z-index:5;padding:8px 8px calc(10px + env(safe-area-inset-bottom));
-  background:linear-gradient(#0000,#070b14 40%);
+  background:linear-gradient(#0000,#050505 40%);
 }
 .presets{display:flex;gap:6px;justify-content:center;margin-bottom:6px;align-items:center;flex-wrap:wrap}
-.presets button{background:#243049;color:#fff;border-radius:16px;padding:10px 12px;font-size:13px;min-height:44px}
-.presets input{width:110px;min-width:90px;background:#1b2438;color:#ffd24a;font-weight:800;text-align:center;padding:10px;font-size:16px;min-height:44px}
+.presets button{background:#151515;color:#E8E5DE;border:1px solid #594015;border-radius:16px;padding:10px 12px;font-size:13px;min-height:44px}
+.presets input{width:110px;min-width:90px;background:#0D0D0D;color:#F2CD68;font-weight:800;text-align:center;padding:10px;font-size:16px;min-height:44px}
 .actions{display:flex;gap:8px;justify-content:center}
 .actions button{flex:1;max-width:none;padding:16px 8px;border-radius:24px;font-size:15px;min-height:52px}
-.fold{background:#c43333;color:#fff}
-.check{background:#2d6adf;color:#fff}
-.raise{background:#f0c33a;color:#1a1406}
+.fold{background:linear-gradient(180deg,#D62828,#8F161B);color:#fff}
+.check{background:#151515;color:#E8E5DE;border:1px solid #D6A83D}
+.raise{background:linear-gradient(180deg,#F2CD68,#D6A83D);color:#1a1406}
 .leave{
   position:absolute;right:8px;top:8px;z-index:6;background:#0007;color:#fff;
   width:36px;height:36px;border-radius:50%;font-size:16px;
 }
 .bust{
   position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
-  background:#05070ccc;padding:16px;
+  background:#050505cc;padding:16px;
 }
 .bust.show{display:flex}
-.bust .box{width:min(380px,94vw);background:#121a2c;border:1px solid #c9a35a66;border-radius:16px;padding:20px;text-align:center}
-.bust h3{margin:0 0 10px;color:#f3d27a}
+.bust .box{width:min(380px,94vw);background:#0D0D0D;border:1px solid #594015;border-radius:16px;padding:20px;text-align:center}
+.bust h3{margin:0 0 10px;color:#F2CD68}
 .bust .row{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
 .bust button{min-width:120px}
 @media(max-width:700px){
@@ -165,7 +166,7 @@ button:disabled{opacity:.38;cursor:default}
   <div class="lobby" id="connectPanel">
     <div class="box">
       <h2>Entrando na mesa</h2>
-      <div class="muted" id="joinMsg" style="color:#9db0c8;text-align:center"></div>
+      <div class="muted" id="joinMsg" style="color:#A89F8A;text-align:center"></div>
     </div>
   </div>
   <div class="stage">
@@ -183,7 +184,7 @@ button:disabled{opacity:.38;cursor:default}
     <div class="bust" id="bustPanel">
       <div class="box">
         <h3 id="bustTitle">Stack zerado</h3>
-        <p class="muted" id="bustMsg" style="color:#9db0c8"></p>
+        <p class="muted" id="bustMsg" style="color:#A89F8A"></p>
         <div class="row" id="bustBtns"></div>
       </div>
     </div>
@@ -205,7 +206,7 @@ button:disabled{opacity:.38;cursor:default}
 </div>
 <script>
 let ws=null, myId=null, state=null, raiseTo=0, bustOpen=false, lastSnap='', wasMyTurn=false, bustWallet=null, rafClock=0, rafRender=0;
-let settings=(function(){ try{return Object.assign({sound:true,notify:true,vibrate:true},JSON.parse(localStorage.getItem('pdg_settings')||'{}'));}catch(_){return {sound:true,notify:true,vibrate:true};}})();
+let settings=(function(){ try{return Object.assign({sound:true,notify:true,vibrate:true,music:true,musicVol:35},JSON.parse(localStorage.getItem('pdg_settings')||'{}'));}catch(_){return {sound:true,notify:true,vibrate:true,music:true,musicVol:35};}})();
 function turnBeep(){
   if(!settings.sound) return;
   try{

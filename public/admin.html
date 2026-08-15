@@ -2,48 +2,68 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Admin · Poker da Galera</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#05070c;color:#fff}
-.wrap{max-width:1100px;margin:auto;padding:16px}
-h1{color:#f3d27a;font-size:20px;margin:0}
-h2{font-size:16px;margin:22px 0 8px;color:#f6e7b8}
-table{width:100%;border-collapse:collapse;font-size:13px;background:#121a2c;border-radius:10px;overflow:hidden}
-th,td{padding:8px;border-bottom:1px solid #243049;text-align:left;vertical-align:top}
-th{background:#0d1422;color:#f3d27a}
-button{border:0;border-radius:8px;padding:7px 10px;font-weight:800;cursor:pointer;margin:2px}
-.ok{background:#1fa65a;color:#fff}.no{background:#c43333;color:#fff}.sec{background:#243049;color:#fff}
-.gold{background:linear-gradient(180deg,#f6d56a,#d4a42a);color:#1a1406}
-input{background:#1b2438;color:#fff;border:0;border-radius:8px;padding:6px;width:90px}
-a{color:#7eb6ff}
-.muted{color:#9db0c8}
-.pager{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
-.tbox{background:#121a2c;border:1px solid #2c3a58;border-radius:12px;padding:12px}
-.tbox.on{border-color:#c9a35a88}
-.tbox b{display:block;color:#f6e7b8;margin-bottom:4px}
-.err{color:#ff8b8b;min-height:18px}
+:root{
+  --bg:#050505;--bg2:#0D0D0D;--tex:#151515;
+  --gold:#D6A83D;--gold-l:#F2CD68;--gold-d:#8A6422;--gold-b:#594015;
+  --ink:#E8E5DE;--red:#D62828;--red-d:#8F161B;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.wrap{max-width:430px;margin:auto;min-height:100vh;padding:0 0 72px;background:
+  radial-gradient(120% 50% at 50% -8%, #151515 0%, transparent 55%), var(--bg)}
+@media(min-width:900px){ .wrap{max-width:980px} }
+.top{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.back{min-height:40px;width:40px;padding:0;border-radius:50%;background:var(--tex);color:var(--ink);border:1px solid var(--gold-b);box-shadow:none}
+h1{margin:0;font-size:18px;color:var(--gold-l);flex:1}
+.who{margin:0 12px 8px;font-size:12px;color:#A89F8A}
+.err{color:#E8A0A0;font-size:13px;min-height:16px;margin:0 12px}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 12px 12px;position:sticky;top:0;z-index:8;background:linear-gradient(#050505,#050505ee)}
+.tabs button{min-height:40px;padding:8px 4px;font-size:11px;letter-spacing:.4px;background:var(--tex);color:#A89F8A;box-shadow:none;border:1px solid var(--gold-b);border-radius:999px}
+.tabs button.on{background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#1a1406;border-color:var(--gold)}
+.page{padding:0 12px 16px;display:none}
+.page.on{display:block}
+.cards{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:900px){ .cards.tables{grid-template-columns:repeat(3,1fr)} }
+.tbox,.card{background:var(--bg2);border:1px solid var(--gold-b);border-radius:16px;padding:12px}
+.tbox.on{border-color:var(--gold)}
+.tbox b,.card b{display:block;color:var(--gold-l);margin-bottom:4px;font-size:15px}
+.muted{color:#A89F8A;font-size:13px}
+.row{display:flex;justify-content:space-between;gap:8px;margin:4px 0;font-size:13px}
+.row span{color:#A89F8A}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+button{border:0;border-radius:10px;padding:10px 12px;font-weight:800;cursor:pointer;font-size:13px;min-height:40px}
+.ok{background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#1a1406}
+.no{background:linear-gradient(180deg,var(--red),var(--red-d));color:#fff}
+.sec{background:var(--tex);color:var(--ink);border:1px solid var(--gold-b)}
+.gold{background:var(--gold-d);color:var(--ink)}
+input{background:var(--tex);color:var(--ink);border:1px solid var(--gold-b);border-radius:10px;padding:10px;min-height:40px;font-size:16px;flex:1;min-width:0}
+.pager{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap}
+.bal{font-weight:800;color:var(--gold-l)}
+.pixkey{word-break:break-all;font-size:12px;color:var(--ink)}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <h1>Poker da Galera · Admin</h1>
-    <a href="/"><button class="sec">Lobby</button></a>
+  <div class="top">
+    <a href="/"><button class="back" type="button">‹</button></a>
+    <h1>Painel admin</h1>
   </div>
-  <p class="muted" id="who"></p>
+  <p class="who" id="who"></p>
   <p class="err" id="err"></p>
-  <h2>Mesas</h2>
-  <div class="cards" id="tables"></div>
-  <h2>Jogadores</h2>
-  <div id="users"></div>
-  <div class="pager" id="pager"></div>
-  <h2>Depósitos</h2>
-  <div id="deps"></div>
-  <h2>Saques</h2>
-  <div id="outs"></div>
+  <div class="tabs">
+    <button class="on" id="tab-tables" onclick="showTab('tables')">Mesas</button>
+    <button id="tab-users" onclick="showTab('users')">Jogadores</button>
+    <button id="tab-deps" onclick="showTab('deps')">Depósitos</button>
+    <button id="tab-outs" onclick="showTab('outs')">Saques</button>
+  </div>
+  <div class="page on" id="page-tables"><div class="cards tables" id="tables"></div></div>
+  <div class="page" id="page-users"><div id="users"></div><div class="pager" id="pager"></div></div>
+  <div class="page" id="page-deps"><div id="deps"></div></div>
+  <div class="page" id="page-outs"><div id="outs"></div></div>
 </div>
 <script>
 const token=localStorage.getItem('pdg_token')||'';
@@ -53,8 +73,13 @@ function statusPt(s){
   return m[String(s||'').toLowerCase()]||'Pendente';
 }
 const asArr=d=>!d?[]:Array.isArray(d)?d:[d];
-const PAGE=5;
-let userPage=0, allUsers=[];
+const PAGE=6;
+let userPage=0, allUsers=[], tab='tables';
+function showTab(name){
+  tab=name;
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on', p.id==='page-'+name));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on', b.id==='tab-'+name));
+}
 async function api(path, body, method){
   const opt={ method: method||(body?'POST':'GET'), headers:{ 'Content-Type':'application/json', Authorization:'Bearer '+token } };
   if(body) opt.body=JSON.stringify(body);
@@ -71,13 +96,13 @@ async function boot(){
     let me=await api('/api/me');
     if(Array.isArray(me)) me=me[0];
     if(!me || me.role!=='admin'){
-      who.textContent='Sem permissão de admin para '+(me&&me.email||'esta conta')+'. Rode supabase/make-admin.sql no SQL Editor.';
+      who.textContent='Sem permissão de admin para '+(me&&me.email||'esta conta')+'.';
       return;
     }
-    who.textContent='Logado: '+me.email;
+    who.textContent=me.email;
     await loadAll();
   } catch(e){
-    who.textContent='Erro: '+(e.message||e)+'. Rode supabase/make-admin.sql no SQL Editor e reinicie o servidor.';
+    who.textContent='Erro: '+(e.message||e);
   }
 }
 const EMPTY_TABLES=[
@@ -92,8 +117,8 @@ function renderTables(tables){
   document.getElementById('tables').innerHTML=(rows.length?rows:EMPTY_TABLES).map(t=>`
     <div class="tbox ${t.active?'on':''}">
       <b>${esc(t.name)}</b>
-      <div>${t.players}/${t.max} jogadores</div>
-      <div class="muted">${t.active?'Ativa':'Vazia'}</div>
+      <div class="row"><span>Jogadores</span><span>${t.players}/${t.max}</span></div>
+      <div class="row"><span>Status</span><span>${t.active?'Ativa':'Vazia'}</span></div>
       <div class="muted">${(t.seated||[]).map(esc).join(', ')||'—'}</div>
     </div>`).join('');
 }
@@ -113,42 +138,48 @@ async function loadAll(){
   }
   try {
     const deps=asArr(await api('/api/admin/deposits'));
-    document.getElementById('deps').innerHTML=deps.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>Status</th></tr>
-      ${deps.map(d=>`<tr>
-        <td>${new Date(d.created_at).toLocaleString()}</td>
-        <td>${esc(d.email)}</td><td>${brl(d.amount)}</td><td>${esc(statusPt(d.status))}</td>
-      </tr>`).join('')}</table>`:'<p class="muted">Nenhum depósito registrado no app. Comprovantes vão pelo WhatsApp.</p>';
+    document.getElementById('deps').innerHTML=deps.length?`<div class="cards">${deps.map(d=>`
+      <div class="card">
+        <b>${brl(d.amount)}</b>
+        <div class="row"><span>Conta</span><span>${esc(d.email)}</span></div>
+        <div class="row"><span>Status</span><span>${esc(statusPt(d.status))}</span></div>
+        <div class="muted">${new Date(d.created_at).toLocaleString()}</div>
+      </div>`).join('')}</div>`:'<p class="muted">Nenhum depósito registrado no app. Comprovantes vão pelo WhatsApp.</p>';
   } catch(e){ document.getElementById('deps').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
   try {
     const outs=asArr(await api('/api/admin/withdrawals'));
-    document.getElementById('outs').innerHTML=outs.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>PIX</th><th>Status</th><th></th></tr>
-      ${outs.map(w=>`<tr>
-          <td>${new Date(w.created_at).toLocaleString()}</td>
-          <td>${esc(w.email)}</td><td>${brl(w.amount)}</td>
-          <td>${esc(w.pix_key)}</td>
-          <td>${esc(statusPt(w.status))}</td>
-          <td>${w.status==='pending'?`<button class="ok" onclick="payOut('${w.id}')">Pagar PIX</button>
-            <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>`:''}</td>
-        </tr>`).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';
+    document.getElementById('outs').innerHTML=outs.length?`<div class="cards">${outs.map(w=>`
+      <div class="card">
+        <b>${brl(w.amount)}</b>
+        <div class="row"><span>Conta</span><span>${esc(w.email)}</span></div>
+        <div class="row"><span>Status</span><span>${esc(statusPt(w.status))}</span></div>
+        <div class="pixkey">${esc(w.pix_key)}</div>
+        <div class="muted">${new Date(w.created_at).toLocaleString()}</div>
+        ${w.status==='pending'?`<div class="actions">
+          <button class="ok" onclick="payOut('${w.id}')">Pagar PIX</button>
+          <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>
+        </div>`:''}
+      </div>`).join('')}</div>`:'<p class="muted">Nenhum saque.</p>';
   } catch(e){ document.getElementById('outs').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
 }
 function renderUsers(){
   const pages=Math.max(1, Math.ceil(allUsers.length/PAGE));
   const slice=allUsers.slice(userPage*PAGE, userPage*PAGE+PAGE);
-  document.getElementById('users').innerHTML=slice.length?`<table>
-    <tr><th>Usuário</th><th>E-mail</th><th>Saldo</th><th>Papel</th><th>Ajustar</th><th></th></tr>
-    ${slice.map(u=>`<tr>
-      <td>${esc(u.username)}</td><td>${esc(u.email)}</td>
-      <td>${brl(u.balance)}</td><td>${esc(u.role)}</td>
-      <td>
-        <input id="a-${u.id}" type="number" min="0.01" step="0.01" placeholder="R$">
-        <button class="ok" onclick="adjust('${u.id}',1)">Adicionar</button>
-        <button class="gold" onclick="adjust('${u.id}',-1)">Remover</button>
-      </td>
-      <td><button class="no" onclick="delUser('${u.id}','${esc(u.username)}')">Excluir</button></td>
-    </tr>`).join('')}</table>`:'<p class="muted">Nenhum jogador. Rode make-admin.sql se esta mensagem persistir.</p>';
+  document.getElementById('users').innerHTML=slice.length?`<div class="cards">${slice.map(u=>`
+    <div class="card">
+      <b>${esc(u.username)}</b>
+      <div class="muted">${esc(u.email)}</div>
+      <div class="row"><span>Papel</span><span>${esc(u.role)}</span></div>
+      <div class="row"><span>Saldo</span><span class="bal">${brl(u.balance)}</span></div>
+      <div class="actions">
+        <input id="a-${u.id}" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Valor R$">
+        <button class="ok" onclick="adjust('${u.id}',1)">+</button>
+        <button class="gold" onclick="adjust('${u.id}',-1)">−</button>
+        <button class="no" onclick="delUser('${u.id}','${esc(u.username)}')">Excluir</button>
+      </div>
+    </div>`).join('')}</div>`:'<p class="muted">Nenhum jogador.</p>';
   document.getElementById('pager').innerHTML=`
-    <span class="muted">${allUsers.length} jogadores · página ${userPage+1} de ${pages}</span>
+    <span class="muted">${allUsers.length} jogadores · ${userPage+1}/${pages}</span>
     <button class="sec" ${userPage<=0?'disabled':''} onclick="userPage--;renderUsers()">Anterior</button>
     <button class="sec" ${userPage>=pages-1?'disabled':''} onclick="userPage++;renderUsers()">Próxima</button>`;
 }

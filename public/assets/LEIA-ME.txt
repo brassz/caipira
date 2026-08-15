@@ -1,8 +1,14 @@
 Coloque aqui os arquivos visuais:
 
-  logo.png          → logo (PNG, fundo transparente de preferência)
-  login-bg.png      → fundo da tela de login
-  table.png         → imagem da MESA ao vivo (PNG oval, fundo transparente)
+  logo.png               → logo (PNG, fundo transparente de preferência)
+  login-bg.png           → fundo da tela de login (desktop / fallback)
+  login-bg-mobile.png    → fundo da tela de login no celular (retrato)
+  table.png              → imagem da MESA ao vivo (PNG oval, fundo transparente)
+
+Login mobile (login-bg-mobile.png):
+  Caminho: public/assets/login-bg-mobile.png
+  Tamanho sugerido: 1080 x 1920 (retrato). PNG, enquadra o assunto no centro.
+  Se o arquivo não existir, o app usa login-bg.png.
 
 Mesa ao vivo (table.png):
   Tamanho sugerido: 1200 x 800 ou similar, horizontal.
