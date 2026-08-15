@@ -232,11 +232,20 @@ function mountApi(app) {
     try {
       const raw = req.rawBody || Buffer.from(JSON.stringify(req.body || {}));
       const event = verifyWebhook(raw, req.headers['x-cajupay-signature'], process.env.CAJUPAY_WEBHOOK_SECRET);
-      const type = event.type || req.headers['x-cajupay-event'] || '';
+      const type = String(event.type || req.headers['x-cajupay-event'] || '');
       const obj = (event.data && event.data.object) || event.data || {};
-      const pid = obj.cajupay_payment_id || obj.payment_id || obj.id;
-      if (String(type).includes('pix.payment.paid') || String(obj.status).toLowerCase() === 'paid') {
+      if (type.includes('pix.payment.paid')) {
+        const pid = obj.cajupay_payment_id || obj.payment_id || obj.id;
         if (pid) await confirmPixPath('cajupay:' + pid);
+      }
+      if (type.includes('payout.paid') || type.includes('payout.failed')) {
+        const poid = obj.cajupay_payout_id || obj.payout_id || obj.id;
+        if (poid) {
+          await db().rpc('api_confirm_withdrawal_by_payout', {
+            p_payout: String(poid),
+            p_ok: type.includes('payout.paid')
+          });
+        }
       }
       res.json({ ok: true });
     } catch (e) {
@@ -245,12 +254,47 @@ function mountApi(app) {
   });
 
   app.post('/api/withdraw', async (req, res) => {
-    const { amount, pixKey } = req.body || {};
-    const { data, error } = await db().rpc('api_withdraw', {
-      p_token: tokenOf(req), p_amount: Number(amount), p_pix: pixKey
-    });
-    if (error) return res.status(400).json({ error: rpcErr(error) });
-    res.json({ id: data });
+    try {
+      const amount = Number(req.body && req.body.amount);
+      const pixKey = String((req.body && req.body.pixKey) || '').trim();
+      const document = String((req.body && req.body.document) || '').replace(/\D/g, '');
+      if (!amount || amount < 2) return res.status(400).json({ error: 'Valor mínimo R$ 2,00.' });
+      if (document.length !== 11 && document.length !== 14) {
+        return res.status(400).json({ error: 'Informe o CPF do titular da chave PIX.' });
+      }
+      const { data, error } = await db().rpc('api_withdraw', {
+        p_token: tokenOf(req), p_amount: amount, p_pix: pixKey
+      });
+      if (error) return res.status(400).json({ error: rpcErr(error) });
+      const wid = data;
+      const settle = async (status, payoutId) => {
+        const r = await db().rpc('api_settle_my_withdrawal', {
+          p_token: tokenOf(req), p_id: wid, p_status: status, p_payout: payoutId || ''
+        });
+        if (r.error) throw new Error(rpcErr(r.error));
+      };
+      try {
+        const pay = await createPayout({
+          amountCents: Math.round(amount * 100),
+          pixKey,
+          ownerDocument: document
+        });
+        const poid = String(pay.payout_id || pay.id || '');
+        const st = String(pay.status || '').toLowerCase();
+        if (st === 'failed' || st === 'cancelled' || st === 'canceled') {
+          await settle('rejected', poid);
+          return res.status(400).json({ error: 'A CajuPay recusou o saque. Saldo estornado.' });
+        }
+        await settle('paid', poid);
+        const me = await userFromToken(tokenOf(req));
+        res.json({ id: wid, status: 'paid', payoutId: poid, balance: me && me.balance });
+      } catch (e) {
+        await settle('rejected', '');
+        return res.status(400).json({ error: e.message || 'Falha no PIX de saque. Saldo estornado.' });
+      }
+    } catch (e) {
+      res.status(400).json({ error: e.message || 'Erro no saque' });
+    }
   });
 
   app.get('/api/history', async (req, res) => {

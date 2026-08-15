@@ -325,11 +325,12 @@ function walletView(mode){
   }
   if(mode==='out'){
     $('walletBox').innerHTML = `<h3>Saque</h3>
-      <p class="muted">Informe sua chave PIX e o valor. O pagamento é feito após 2 horas, com confirmação no painel.</p>
+      <p class="muted">PIX enviado na hora pela CajuPay. Mínimo R$ 2,00. Informe a chave e o CPF do titular.</p>
       <input id="pixOut" placeholder="Sua chave PIX">
-      <input id="outAmt" type="number" min="1" step="0.01" placeholder="Valor (R$)">
+      <input id="outCpf" placeholder="CPF do titular da chave" inputmode="numeric">
+      <input id="outAmt" type="number" min="2" step="0.01" placeholder="Valor (R$)">
       <div class="err" id="werr"></div>
-      <button onclick="sendWithdraw()">Solicitar saque</button>
+      <button class="ok" onclick="sendWithdraw()">Sacar via PIX</button>
       <button class="sec" onclick="walletView('home')">Voltar</button>`;
   }
 }
@@ -376,10 +377,19 @@ async function checkPix(id){
   } catch(e) { const el=$('werr'); if(el) el.textContent=e.message; }
 }
 async function sendWithdraw(){
+  const amount = Number($('outAmt').value);
+  const pixKey = $('pixOut').value.trim();
+  const document = ($('outCpf').value || '').replace(/\D/g,'');
+  $('werr').textContent = '';
   try {
-    await api('/api/withdraw', { amount: Number($('outAmt').value), pixKey: $('pixOut').value.trim() });
-    alert('Saque solicitado. Pagamento em até 2 horas após análise.');
+    const r = await api('/api/withdraw', { amount, pixKey, document });
+    if(r.balance!=null) profile.balance = r.balance;
     await refresh();
+    openWallet();
+    $('walletBox').innerHTML = `<h3>Saque enviado</h3>
+      <p>O PIX de ${brl(amount)} foi disparado pela CajuPay.</p>
+      <p>Saldo ${brl(profile.balance)}</p>
+      <button class="ok" onclick="walletView('home')">Ok</button>`;
   } catch(e) { $('werr').textContent=e.message; }
 }
 async function loadHist(){

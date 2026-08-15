@@ -74,19 +74,19 @@ function getPayment(id) {
 }
 
 function createPayout({ amountCents, pixKey, ownerDocument }) {
-  const type = pixKeyType(pixKey);
+  let key = String(pixKey || '').trim();
+  const type = pixKeyType(key);
+  if (type === 'cpf' || type === 'cnpj' || type === 'phone') key = key.replace(/\D/g, '');
   const body = {
     amount_cents: amountCents,
     currency: 'BRL',
     wallet_kind: 'main',
     destination: { method: 'dict' },
-    pix_key: String(pixKey).trim(),
+    pix_key: key,
     pix_key_type: type
   };
   const doc = String(ownerDocument || '').replace(/\D/g, '');
-  if (type === 'email' || type === 'phone' || type === 'evp') {
-    if (doc.length >= 11) body.key_owner_document = doc;
-  }
+  if (doc.length >= 11) body.key_owner_document = doc;
   return caju('POST', '/api/payouts', body, { 'Idempotency-Key': crypto.randomUUID() });
 }
 

@@ -118,17 +118,14 @@ async function loadAll(){
   try {
     const outs=asArr(await api('/api/admin/withdrawals'));
     document.getElementById('outs').innerHTML=outs.length?`<table><tr><th>Data</th><th>Conta</th><th>Valor</th><th>PIX</th><th>Status</th><th></th></tr>
-      ${outs.map(w=>{
-        const ready=new Date(w.available_at)<=new Date();
-        return `<tr>
+      ${outs.map(w=>`<tr>
           <td>${new Date(w.created_at).toLocaleString()}</td>
           <td>${esc(w.email)}</td><td>${brl(w.amount)}</td>
           <td>${esc(w.pix_key)}</td>
-          <td>${esc(w.status)} ${ready?'':'· aguardar'}</td>
+          <td>${esc(w.status)}</td>
           <td>${w.status==='pending'?`<button class="ok" onclick="payOut('${w.id}')">Pagar PIX</button>
             <button class="no" onclick="act('/api/admin/withdrawals/${w.id}/reject')">Estornar</button>`:''}</td>
-        </tr>`;
-      }).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';
+        </tr>`).join('')}</table>`:'<p class="muted">Nenhum saque.</p>';
   } catch(e){ document.getElementById('outs').innerHTML='<p class="err">'+esc(e.message)+'</p>'; }
 }
 function renderUsers(){
