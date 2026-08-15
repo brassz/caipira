@@ -266,7 +266,7 @@ function mountApi(app) {
         p_token: tokenOf(req), p_amount: amount, p_pix: pixKey
       });
       if (error) return res.status(400).json({ error: rpcErr(error) });
-      const wid = data;
+      const wid = Array.isArray(data) ? data[0] : data;
       const settle = async (status, payoutId) => {
         const r = await db().rpc('api_settle_my_withdrawal', {
           p_token: tokenOf(req), p_id: wid, p_status: status, p_payout: payoutId || ''
@@ -282,14 +282,16 @@ function mountApi(app) {
         const poid = String(pay.payout_id || pay.id || '');
         const st = String(pay.status || '').toLowerCase();
         if (st === 'failed' || st === 'cancelled' || st === 'canceled') {
-          await settle('rejected', poid);
+          try { await settle('rejected', poid); } catch (_) {}
           return res.status(400).json({ error: 'A CajuPay recusou o saque. Saldo estornado.' });
         }
-        await settle('paid', poid);
+        try { await settle('paid', poid); } catch (se) {
+          return res.json({ id: wid, status: 'pending', payoutId: poid, warning: se.message });
+        }
         const me = await userFromToken(tokenOf(req));
         res.json({ id: wid, status: 'paid', payoutId: poid, balance: me && me.balance });
       } catch (e) {
-        await settle('rejected', '');
+        try { await settle('rejected', ''); } catch (_) {}
         return res.status(400).json({ error: e.message || 'Falha no PIX de saque. Saldo estornado.' });
       }
     } catch (e) {

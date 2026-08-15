@@ -371,7 +371,9 @@ async function checkPix(id){
       stopPixPoll();
       if(s.balance!=null) profile.balance = s.balance;
       await refresh();
-      $('walletBox').innerHTML = `<h3>Pagamento confirmado</h3><p>Saldo ${brl(profile.balance)}</p>
+      openWallet();
+      const box=$('walletBox');
+      if(box) box.innerHTML = `<h3>Pagamento confirmado</h3><p>Saldo ${brl(profile.balance)}</p>
         <button class="ok" onclick="walletView('home')">Ok</button>`;
     }
   } catch(e) { const el=$('werr'); if(el) el.textContent=e.message; }
@@ -379,25 +381,33 @@ async function checkPix(id){
 async function sendWithdraw(){
   const amount = Number($('outAmt').value);
   const pixKey = $('pixOut').value.trim();
-  const document = ($('outCpf').value || '').replace(/\D/g,'');
-  $('werr').textContent = '';
+  const cpf = ($('outCpf').value || '').replace(/\D/g,'');
+  const errEl = $('werr');
+  if(errEl) errEl.textContent = '';
   try {
-    const r = await api('/api/withdraw', { amount, pixKey, document });
+    const r = await api('/api/withdraw', { amount, pixKey, document: cpf });
     if(r.balance!=null) profile.balance = r.balance;
-    await refresh();
-    openWallet();
+    const saldo = document.querySelector('.saldo b');
+    if(saldo) saldo.textContent = brl(profile.balance);
     $('walletBox').innerHTML = `<h3>Saque enviado</h3>
       <p>O PIX de ${brl(amount)} foi disparado pela CajuPay.</p>
       <p>Saldo ${brl(profile.balance)}</p>
       <button class="ok" onclick="walletView('home')">Ok</button>`;
-  } catch(e) { $('werr').textContent=e.message; }
+  } catch(e) {
+    const el = $('werr');
+    if(el) el.textContent = e.message;
+    else alert(e.message);
+  }
 }
 async function loadHist(){
   try {
+    const box = $('walletBox');
     const h = await api('/api/history');
-    $('hist').innerHTML = `<p class="muted">Depósitos</p>${(h.deposits||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}
+    const el = $('hist');
+    if(!el || $('walletBox')!==box) return;
+    el.innerHTML = `<p class="muted">Depósitos</p>${(h.deposits||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}
       <p class="muted">Saques</p>${(h.withdrawals||[]).map(x=>`<div class="muted">${brl(x.amount)} · ${x.status}</div>`).join('')}`;
-  } catch(e) { $('hist').innerHTML=''; }
+  } catch(e) { const el=$('hist'); if(el) el.innerHTML=''; }
 }
 async function logout(){
   try { await api('/api/logout', {}); } catch(_){}

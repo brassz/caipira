@@ -9,6 +9,24 @@ function keys() {
   return { key, secret };
 }
 
+function cajuMsg(data, status) {
+  const pick = (v) => {
+    if (!v) return '';
+    if (typeof v === 'string') return v;
+    if (typeof v === 'object') return pick(v.message || v.user_message || v.error || v.code || v.msg);
+    return String(v);
+  };
+  const msg = pick(data && (data.user_message || data.error || data.message || data.detail || data.code || data.last_error))
+    || (data && data.raw) || ('CajuPay ' + status);
+  if (String(msg).includes('payouts_blocked_pending_kyc')) {
+    return 'CajuPay: saques bloqueados até o KYC da conta ser aprovado.';
+  }
+  if (String(msg).includes('insufficient') || String(msg).includes('saldo')) {
+    return 'CajuPay: saldo insuficiente na carteira da CajuPay.';
+  }
+  return String(msg);
+}
+
 async function caju(method, path, body, extraHeaders) {
   const { key, secret } = keys();
   const opt = {
@@ -26,8 +44,7 @@ async function caju(method, path, body, extraHeaders) {
   let data = {};
   try { data = text ? JSON.parse(text) : {}; } catch (_) { data = { raw: text }; }
   if (!r.ok) {
-    const msg = data.error || data.user_message || data.message || ('CajuPay ' + r.status);
-    const err = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    const err = new Error(cajuMsg(data, r.status));
     err.status = r.status;
     err.data = data;
     throw err;
@@ -38,13 +55,11 @@ async function caju(method, path, body, extraHeaders) {
 function pixKeyType(key) {
   const k = String(key || '').trim();
   const d = k.replace(/\D/g, '');
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(k)) return 'evp';
   if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(k)) return 'email';
-  if (d.length === 11 && /^\d+$/.test(d) && !k.includes('@')) return 'cpf';
-  if (d.length === 14 && /^\d+$/.test(d)) return 'cnpj';
-  if (d.length >= 10 && d.length <= 13 && (k.startsWith('+') || k.startsWith('55') || /^\d+$/.test(k.replace(/\s/g, '')))) {
-    if (!k.includes('@') && d.length !== 11) return 'phone';
-    if (k.startsWith('+') || k.startsWith('(')) return 'phone';
-  }
+  if (d.length === 14) return 'cnpj';
+  if (d.length === 11) return 'cpf';
+  if (d.length >= 10 && d.length <= 13) return 'phone';
   return 'evp';
 }
 
