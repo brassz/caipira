@@ -164,7 +164,7 @@ function mountApi(app) {
       const me = await userFromToken(tokenOf(req));
       if (!me) return res.status(401).json({ error: 'Faça login.' });
       const amount = Number(req.body && req.body.amount);
-      if (!amount || amount < 2) return res.status(400).json({ error: 'Valor mínimo R$ 2,00.' });
+      if (!amount || amount < 10) return res.status(400).json({ error: 'Depósito mínimo R$ 10,00.' });
       const doc = String((req.body && req.body.document) || '').replace(/\D/g, '');
       if (doc.length !== 11 && doc.length !== 14) {
         return res.status(400).json({ error: 'Informe um CPF válido.' });
@@ -257,8 +257,12 @@ function mountApi(app) {
     try {
       const amount = Number(req.body && req.body.amount);
       const pixKey = String((req.body && req.body.pixKey) || '').trim();
-      const document = String((req.body && req.body.document) || '').replace(/\D/g, '');
-      if (!amount || amount < 2) return res.status(400).json({ error: 'Valor mínimo R$ 2,00.' });
+      let document = String((req.body && req.body.document) || '').replace(/\D/g, '');
+      const keyDigits = pixKey.replace(/\D/g, '');
+      if (document.length !== 11 && document.length !== 14 && (keyDigits.length === 11 || keyDigits.length === 14)) {
+        document = keyDigits;
+      }
+      if (!amount || amount < 15) return res.status(400).json({ error: 'Saque mínimo R$ 15,00.' });
       if (document.length !== 11 && document.length !== 14) {
         return res.status(400).json({ error: 'Informe o CPF do titular da chave PIX.' });
       }

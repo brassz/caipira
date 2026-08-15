@@ -316,8 +316,8 @@ function walletView(mode){
   }
   if(mode==='add'){
     $('walletBox').innerHTML = `<h3>Adicionar saldo</h3>
-      <p class="muted">PIX instantâneo. Mínimo R$ 2,00. O saldo entra automaticamente após o pagamento.</p>
-      <input id="depAmt" type="number" min="2" step="0.01" placeholder="Valor (R$)">
+      <p class="muted">PIX instantâneo. Depósito mínimo R$ 10,00. O saldo entra automaticamente após o pagamento.</p>
+      <input id="depAmt" type="number" min="10" step="0.01" placeholder="Valor (R$)">
       <input id="depCpf" placeholder="CPF" inputmode="numeric">
       <div class="err" id="werr"></div>
       <button class="ok" onclick="createPixCharge()">Gerar PIX</button>
@@ -325,10 +325,11 @@ function walletView(mode){
   }
   if(mode==='out'){
     $('walletBox').innerHTML = `<h3>Saque</h3>
-      <p class="muted">PIX enviado na hora pela CajuPay. Mínimo R$ 2,00. Informe a chave e o CPF do titular.</p>
+      <p class="muted">PIX enviado na hora pela CajuPay. Informe a chave e o CPF do titular.</p>
+      <p class="err" style="min-height:auto;margin:0 0 8px">Saque mínimo R$ 15,00</p>
       <input id="pixOut" placeholder="Sua chave PIX">
       <input id="outCpf" placeholder="CPF do titular da chave" inputmode="numeric">
-      <input id="outAmt" type="number" min="2" step="0.01" placeholder="Valor (R$)">
+      <input id="outAmt" type="number" min="15" step="0.01" placeholder="Valor (R$)">
       <div class="err" id="werr"></div>
       <button class="ok" onclick="sendWithdraw()">Sacar via PIX</button>
       <button class="sec" onclick="walletView('home')">Voltar</button>`;
