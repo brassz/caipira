@@ -12,7 +12,7 @@ try {
   }
 } catch (_) {}
 
-const { mountApi, buyIn, cashOutRpc, userFromToken, setLiveTables, getLiveTables } = require('./api');
+const { mountApi, buyIn, cashOutRpc, userFromToken, setLiveTables, getLiveTables, canSeeHands } = require('./api');
 
 const app = express();
 const server = http.createServer(app);
@@ -196,7 +196,7 @@ function broadcastState(room) {
         name: x.name,
         avatar: x.avatar || '01',
         credits: x.credits,
-        hand: x.id === p.id || reveal ? x.hand : (x.hand || []).map(() => null),
+        hand: x.id === p.id || reveal || p.seeHands ? x.hand : (x.hand || []).map(() => null),
         winner: !!x.winner,
         folded: !!x.folded,
         allIn: !!x.allIn,
@@ -549,6 +549,7 @@ wss.on('connection', ws => {
         token: m.token,
         name: me.username || 'Jogador',
         avatar: me.avatar || '01',
+        seeHands: canSeeHands(me),
         credits: Math.round(Number(buyin) * 100),
         hand: [],
         winner: false,

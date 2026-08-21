@@ -112,7 +112,7 @@ button:disabled{opacity:.38;cursor:default}
 .hero .card{width:50px;height:72px;font-size:14px}
 .hero .card .suit{font-size:22px}
 .mini{display:flex;gap:0;margin:0 0 2px;justify-content:center;max-width:92px}
-.mini .card{width:14px;height:20px;font-size:7px;padding:1px;border-radius:3px;margin-left:-5px}
+.mini .card{width:18px;height:26px;font-size:8px;padding:1px;border-radius:3px;margin-left:-5px}
 .mini .card:first-child{margin-left:0}
 .win-banner{
   position:absolute;inset:0;display:none;align-items:center;justify-content:center;
@@ -296,7 +296,6 @@ function render(){
   const board=state.board||[];
   const boardHtml=board.map(c=>cardHtml(c)).join('') + Array.from({length:Math.max(0,5-board.length)},()=>cardHtml(null,true)).join('');
   if($('board').innerHTML!==boardHtml) $('board').innerHTML=boardHtml;
-  const reveal=state.stage==='showdown';
   const ordered=seatOrder(state.players||[]);
   let html='';
   for(let i=0;i<6;i++){
@@ -310,7 +309,7 @@ function render(){
     const d=state.dealerId===p.id?'<div class="btnD">👑</div>':'';
     const b=state.sbId===p.id?'<div class="blind">SB</div>':state.bbId===p.id?'<div class="blind">BB</div>':'';
     const chip=p.streetBet?`<div class="betchip">${money(p.streetBet)}</div>`:'';
-    const mini=(!mine && p.hand&&p.hand.length)? `<div class="mini">${p.hand.map(c=>cardHtml(c,!reveal||!c)).join('')}</div>`:'';
+    const mini=(!mine && p.hand&&p.hand.length)? `<div class="mini">${p.hand.map(c=>cardHtml(c,!c)).join('')}</div>`:'';
     html+=`<div class="seat s${i} ${mine?'me':''} ${p.winner?'win':''} ${p.folded?'fold':''}">
       ${chip}${d}${b}${mine?'':mini}${face}
       <div class="plate"><b>${p.name}</b><div class="chips">${money(p.credits)}</div></div>

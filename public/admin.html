@@ -72,6 +72,10 @@ function statusPt(s){
   const m={ pending:'Pendente', approved:'Aprovado', paid:'Aprovado', rejected:'Cancelado', cancelled:'Cancelado', canceled:'Cancelado' };
   return m[String(s||'').toLowerCase()]||'Pendente';
 }
+function rolePt(s){
+  const m={ admin:'Admin', proplayer:'Pro Player', user:'Jogador' };
+  return m[String(s||'').toLowerCase()]||'Jogador';
+}
 const asArr=d=>!d?[]:Array.isArray(d)?d:[d];
 const PAGE=6;
 let userPage=0, allUsers=[], tab='tables';
@@ -169,12 +173,15 @@ function renderUsers(){
     <div class="card">
       <b>${esc(u.username)}</b>
       <div class="muted">${esc(u.email)}</div>
-      <div class="row"><span>Papel</span><span>${esc(u.role)}</span></div>
+      <div class="row"><span>Papel</span><span>${esc(rolePt(u.role))}</span></div>
       <div class="row"><span>Saldo</span><span class="bal">${brl(u.balance)}</span></div>
       <div class="actions">
         <input id="a-${u.id}" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Valor R$">
         <button class="ok" onclick="adjust('${u.id}',1)">+</button>
         <button class="gold" onclick="adjust('${u.id}',-1)">−</button>
+        ${u.role==='admin'?'':(u.role==='proplayer'
+          ? `<button class="sec" onclick="setRole('${u.id}','user')">Tirar Pro</button>`
+          : `<button class="gold" onclick="setRole('${u.id}','proplayer')">Pro Player</button>`)}
         <button class="no" onclick="delUser('${u.id}','${esc(u.username)}')">Excluir</button>
       </div>
     </div>`).join('')}</div>`:'<p class="muted">Nenhum jogador.</p>';
@@ -188,6 +195,10 @@ async function adjust(id, sign){
   const v=Number(raw);
   if(!v || v<=0){ alert('Informe o valor.'); return; }
   try { await api('/api/admin/balance',{ userId:id, delta: sign*v }); await loadAll(); }
+  catch(e){ alert(e.message); }
+}
+async function setRole(id, role){
+  try { await api('/api/admin/users/'+id+'/role',{ role }); await loadAll(); }
   catch(e){ alert(e.message); }
 }
 async function delUser(id, name){

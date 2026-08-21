@@ -9,7 +9,7 @@ create table if not exists public.users (
   username text not null,
   password_hash text not null,
   balance numeric(12,2) not null default 0,
-  role text not null default 'user' check (role in ('user','admin')),
+  role text not null default 'user' check (role in ('user','admin','proplayer')),
   avatar text not null default '01',
   created_at timestamptz not null default now()
 );
@@ -479,6 +479,23 @@ begin
 end;
 $$;
 
+create or replace function public.api_admin_set_role(p_token text, p_user uuid, p_role text)
+returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  if not public.staff_ok(p_token) then raise exception 'Sem permissão'; end if;
+  if p_role is null or p_role not in ('user','admin','proplayer') then
+    raise exception 'Papel inválido';
+  end if;
+  if p_user = public.uid_from_token(p_token) then
+    raise exception 'Não é possível alterar o próprio papel';
+  end if;
+  update public.users set role = p_role where id = p_user;
+  if not found then raise exception 'Usuário não encontrado'; end if;
+end;
+$$;
+
 grant execute on function public.api_register(text,text,text) to anon, authenticated;
 grant execute on function public.api_login(text,text) to anon, authenticated;
 grant execute on function public.api_me(text) to anon, authenticated;
@@ -495,6 +512,7 @@ grant execute on function public.staff_ok(text) to anon, authenticated;
 grant execute on function public.api_admin_users(text) to anon, authenticated;
 grant execute on function public.api_admin_set_balance(text,uuid,numeric) to anon, authenticated;
 grant execute on function public.api_admin_adjust_balance(text,uuid,numeric) to anon, authenticated;
+grant execute on function public.api_admin_set_role(text,uuid,text) to anon, authenticated;
 grant execute on function public.api_admin_delete_user(text,uuid) to anon, authenticated;
 grant execute on function public.api_admin_deposits(text) to anon, authenticated;
 grant execute on function public.api_approve_deposit(text,uuid) to anon, authenticated;

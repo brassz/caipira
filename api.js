@@ -57,13 +57,24 @@ function asUser(data) {
 
 const ADMIN_EMAILS = String(process.env.ADMIN_EMAILS || 'brasszgc@gmail.com')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+const PROPLAYER_EMAILS = String(process.env.PROPLAYER_EMAILS || '')
+  .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
 function withAdminFlag(user) {
   if (!user) return user;
-  if (ADMIN_EMAILS.includes(String(user.email || '').toLowerCase())) {
+  const email = String(user.email || '').toLowerCase();
+  if (ADMIN_EMAILS.includes(email)) {
     return { ...user, role: 'admin' };
   }
+  if (user.role !== 'admin' && PROPLAYER_EMAILS.includes(email)) {
+    return { ...user, role: 'proplayer' };
+  }
   return user;
+}
+
+function canSeeHands(user) {
+  const role = user && user.role;
+  return role === 'admin' || role === 'proplayer';
 }
 
 const DEFAULT_TABLES = [
@@ -369,6 +380,16 @@ function mountApi(app) {
     res.json({ ok: true, balance: next });
   });
 
+  app.post('/api/admin/users/:id/role', async (req, res) => {
+    if (!(await requireAdmin(req, res))) return;
+    const role = String((req.body && req.body.role) || '').trim();
+    const { error } = await db().rpc('api_admin_set_role', {
+      p_token: tokenOf(req), p_user: req.params.id, p_role: role
+    });
+    if (error) return res.status(400).json({ error: rpcErr(error) });
+    res.json({ ok: true, role });
+  });
+
   app.post('/api/admin/users/:id/delete', async (req, res) => {
     if (!(await requireAdmin(req, res))) return;
     const { error } = await db().rpc('api_admin_delete_user', {
@@ -460,4 +481,4 @@ async function userFromToken(token) {
   return withAdminFlag(asUser(data));
 }
 
-module.exports = { mountApi, buyIn, cashOutRpc, userFromToken, db, setLiveTables, getLiveTables };
+module.exports = { mountApi, buyIn, cashOutRpc, userFromToken, db, setLiveTables, getLiveTables, canSeeHands };
